@@ -80,7 +80,6 @@
             fill: currentColor;
         }
 
-        /* Fixed sizing for content panels so they have identical dimensions */
         .content-panel {
             flex: 1;
             background-color: #1a212d;
@@ -88,7 +87,7 @@
             border-radius: 16px;
             padding: 36px;
             display: none;
-            height: 600px; /* Fixed height matching calendar container */
+            height: 600px;
             overflow-y: auto;
             flex-direction: column;
         }
@@ -150,14 +149,15 @@
             border-radius: 12px;
             display: flex;
             flex-direction: column;
-            padding: 10px;
-            font-size: 15px;
+            padding: 8px;
+            font-size: 14px;
             font-weight: 500;
             color: #cbd5e1;
             cursor: pointer;
             transition: all 0.2s ease;
             position: relative;
             overflow: hidden;
+            gap: 4px;
         }
 
         .calendar-day:hover {
@@ -176,20 +176,23 @@
 
         .day-number {
             font-weight: 600;
-            margin-bottom: 4px;
         }
 
         .day-note-preview {
             font-size: 11px;
-            color: #818cf8;
-            background: rgba(129, 140, 248, 0.1);
-            padding: 2px 6px;
-            border-radius: 4px;
+            padding: 3px 6px;
+            border-radius: 6px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             margin-top: auto;
+            font-weight: 500;
         }
+
+        /* Priority Colors */
+        .priority-low { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .priority-medium { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3); }
+        .priority-high { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
 
         /* Modal for editing notes */
         .modal-overlay {
@@ -207,10 +210,10 @@
             border: 1px solid #30363d;
             padding: 30px;
             border-radius: 16px;
-            width: 400px;
+            width: 420px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 16px;
         }
 
         .modal h3 {
@@ -218,27 +221,66 @@
             font-size: 20px;
         }
 
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .modal input[type="time"],
         .modal textarea {
             width: 100%;
-            height: 120px;
             background: #161b22;
             border: 1px solid #30363d;
             color: #e2e8f0;
-            padding: 12px;
+            padding: 10px 12px;
             border-radius: 10px;
-            resize: none;
             font-size: 14px;
         }
 
-        .modal textarea:focus {
+        .modal textarea {
+            height: 90px;
+            resize: none;
+        }
+
+        .modal input:focus, .modal textarea:focus {
             outline: none;
             border-color: #6366f1;
         }
+
+        .priority-selector {
+            display: flex;
+            gap: 10px;
+        }
+
+        .priority-btn {
+            flex: 1;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            background: #161b22;
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .priority-btn.selected-low { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-color: #3b82f6; }
+        .priority-btn.selected-medium { background: rgba(234, 179, 8, 0.2); color: #facc15; border-color: #eab308; }
+        .priority-btn.selected-high { background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: #ef4444; }
 
         .modal-buttons {
             display: flex;
             justify-content: flex-end;
             gap: 12px;
+            margin-top: 6px;
         }
 
         .btn {
@@ -317,7 +359,6 @@
 <body>
 
     <div class="dashboard-container">
-        <!-- Static Sidebar -->
         <div class="sidebar-panel">
             <button class="nav-button active" onclick="switchTab('calendar', this)">
                 <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
@@ -329,7 +370,6 @@
             </button>
         </div>
 
-        <!-- Calendar Panel -->
         <div id="calendar-panel" class="content-panel active">
             <div class="calendar-header">
                 <button class="calendar-nav-btn">&#10094;</button>
@@ -348,15 +388,12 @@
             </div>
         </div>
 
-        <!-- Schedule Panel (Exact same size) -->
         <div id="schedule-panel" class="content-panel">
             <div class="schedule-header">
                 <h3>Редактирование расписания</h3>
                 <button class="btn btn-primary" onclick="saveSchedule()">Сохранить</button>
             </div>
-            <div class="schedule-list" id="schedule-list">
-                <!-- Schedule items populated dynamically -->
-            </div>
+            <div class="schedule-list" id="schedule-list"></div>
         </div>
     </div>
 
@@ -364,7 +401,22 @@
     <div class="modal-overlay" id="note-modal">
         <div class="modal">
             <h3 id="modal-title">Заметка на день</h3>
-            <textarea id="modal-textarea" placeholder="Введите текст заметки..."></textarea>
+            <div class="form-group">
+                <label>Время</label>
+                <input type="time" id="modal-time" />
+            </div>
+            <div class="form-group">
+                <label>Важность (цвет)</label>
+                <div class="priority-selector">
+                    <button type="button" class="priority-btn" onclick="setPriority('low', this)">Низкая</button>
+                    <button type="button" class="priority-btn" onclick="setPriority('medium', this)">Средняя</button>
+                    <button type="button" class="priority-btn" onclick="setPriority('high', this)">Высокая</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Текст заметки</label>
+                <textarea id="modal-textarea" placeholder="Введите текст заметки..."></textarea>
+            </div>
             <div class="modal-buttons">
                 <button class="btn btn-secondary" onclick="closeModal()">Отмена</button>
                 <button class="btn btn-primary" onclick="saveNote()">Сохранить</button>
@@ -373,7 +425,6 @@
     </div>
 
     <script>
-        // Load notes & schedule from localStorage
         let notes = JSON.parse(localStorage.getItem('calendar_notes') || '{}');
         let schedule = JSON.parse(localStorage.getItem('college_schedule') || JSON.stringify([
             { time: "09:00 - 10:30", subject: "Техническая механика" },
@@ -383,6 +434,7 @@
         ]));
 
         let selectedDayKey = null;
+        let selectedPriority = 'low';
 
         const grid = document.getElementById('calendar-grid');
         const days = [
@@ -408,11 +460,15 @@
                 numEl.textContent = item.day;
                 el.appendChild(numEl);
 
-                // Check if note exists
                 if (notes[item.key]) {
+                    const noteData = notes[item.key];
                     const notePrev = document.createElement('div');
-                    notePrev.className = 'day-note-preview';
-                    notePrev.textContent = notes[item.key];
+                    notePrev.className = `day-note-preview priority-${noteData.priority || 'low'}`;
+                    
+                    let content = '';
+                    if (noteData.time) content += `[${noteData.time}] `;
+                    content += noteData.text;
+                    notePrev.textContent = content;
                     el.appendChild(notePrev);
                 }
 
@@ -427,8 +483,27 @@
         function openModal(key, dayNum) {
             selectedDayKey = key;
             document.getElementById('modal-title').textContent = `Заметка на ${dayNum} сентября`;
-            document.getElementById('modal-textarea').value = notes[key] || '';
+            
+            const existing = notes[key] || { text: '', time: '', priority: 'low' };
+            document.getElementById('modal-textarea').value = existing.text || '';
+            document.getElementById('modal-time').value = existing.time || '';
+            
+            setPriority(existing.priority || 'low');
             document.getElementById('note-modal').style.display = 'flex';
+        }
+
+        function setPriority(priority, btnElement) {
+            selectedPriority = priority;
+            document.querySelectorAll('.priority-btn').forEach(btn => {
+                btn.className = 'priority-btn';
+            });
+            if (!btnElement) {
+                const idx = priority === 'low' ? 0 : priority === 'medium' ? 1 : 2;
+                btnElement = document.querySelectorAll('.priority-btn')[idx];
+            }
+            if (btnElement) {
+                btnElement.classList.add(`selected-${priority}`);
+            }
         }
 
         function closeModal() {
@@ -437,8 +512,10 @@
 
         function saveNote() {
             const text = document.getElementById('modal-textarea').value.trim();
-            if (text) {
-                notes[selectedDayKey] = text;
+            const time = document.getElementById('modal-time').value;
+            
+            if (text || time) {
+                notes[selectedDayKey] = { text, time, priority: selectedPriority };
             } else {
                 delete notes[selectedDayKey];
             }
@@ -453,7 +530,6 @@
             schedule.forEach((item, index) => {
                 const row = document.createElement('div');
                 row.className = 'schedule-item';
-                
                 row.innerHTML = `
                     <span class="time">${item.time}</span>
                     <input type="text" value="${item.subject}" data-index="${index}" />
@@ -478,7 +554,7 @@
 
             if (tabName === 'calendar') {
                 document.getElementById('calendar-panel').classList.add('active');
-            } else if (tabname === 'schedule' || tabName === 'schedule') {
+            } else if (tabName === 'schedule') {
                 document.getElementById('schedule-panel').classList.add('active');
             }
 
