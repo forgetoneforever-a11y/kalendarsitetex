@@ -158,7 +158,6 @@
             position: relative;
             overflow: hidden;
             gap: 4px;
-            min-height: 80px;
         }
 
         .calendar-day:hover {
@@ -373,10 +372,9 @@
 
         <div id="calendar-panel" class="content-panel active">
             <div class="calendar-header">
-                <!-- Добавлены ID для кнопок навигации -->
-                <button class="calendar-nav-btn" id="prev-month">&#10094;</button>
-                <h2 id="calendar-month-year">Сентябрь 2026</h2>
-                <button class="calendar-nav-btn" id="next-month">&#10095;</button>
+                <button class="calendar-nav-btn">&#10094;</button>
+                <h2>Сентябрь 2026</h2>
+                <button class="calendar-nav-btn">&#10095;</button>
             </div>
 
             <div class="calendar-grid" id="calendar-grid">
@@ -386,7 +384,7 @@
                 <div class="week-day">Чт</div>
                 <div class="week-day">Пт</div>
                 <div class="week-day">Сб</div>
-                <div class="week-day">Вс</div>
+                <div class="week-day">Св</div>
             </div>
         </div>
 
@@ -438,93 +436,53 @@
         let selectedDayKey = null;
         let selectedPriority = 'low';
 
-        // Инициализация текущей даты (сентябрь 2026 по умолчанию или реальное время)
-        let currentDate = new Date(2026, 8, 12); 
-
         const grid = document.getElementById('calendar-grid');
-        const monthYearDisplay = document.getElementById('calendar-month-year');
-        const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+        const days = [
+            { day: 31, muted: true, key: '2026-08-31' },
+            { day: 1, key: '2026-09-01' }, { day: 2, key: '2026-09-02' }, { day: 3, key: '2026-09-03' }, { day: 4, key: '2026-09-04' }, { day: 5, key: '2026-09-05' }, { day: 6, key: '2026-09-06' },
+            { day: 7, key: '2026-09-07' }, { day: 8, key: '2026-09-08' }, { day: 9, key: '2026-09-09' }, { day: 10, key: '2026-09-10' }, { day: 11, key: '2026-09-11' }, { day: 12, key: '2026-09-12', active: true }, { day: 13, key: '2026-09-13' },
+            { day: 14, key: '2026-09-14' }, { day: 15, key: '2026-09-15' }, { day: 16, key: '2026-09-16' }, { day: 17, key: '2026-09-17' }, { day: 18, key: '2026-09-18' }, { day: 19, key: '2026-09-19' }, { day: 20, key: '2026-09-20' },
+            { day: 21, key: '2026-09-21' }, { day: 22, key: '2026-09-22' }, { day: 23, key: '2026-09-23' }, { day: 24, key: '2026-09-24' }, { day: 25, key: '2026-09-25' }, { day: 26, key: '2026-09-26' }, { day: 27, key: '2026-09-27' },
+            { day: 28, key: '2026-09-28' }, { day: 29, key: '2026-09-29' }, { day: 30, key: '2026-09-30' },
+            { day: 1, muted: true, key: '2026-10-01' }, { day: 2, muted: true, key: '2026-10-02' }, { day: 3, muted: true, key: '2026-10-03' }, { day: 4, muted: true, key: '2026-10-04' }
+        ];
 
         function renderCalendar() {
-            // Удаляем старые дни из сетки (оставляя заголовки недели)
-            const oldDays = grid.querySelectorAll('.calendar-day');
-            oldDays.forEach(el => el.remove());
+            grid.querySelectorAll('.calendar-day').forEach(el => el.remove());
+            days.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'calendar-day';
+                if (item.muted) el.classList.add('muted');
+                if (item.key === '2026-09-12') el.classList.add('active');
 
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
+                const numEl = document.createElement('div');
+                numEl.className = 'day-number';
+                numEl.textContent = item.day;
+                el.appendChild(numEl);
 
-            monthYearDisplay.textContent = `${monthNames[month]} ${year}`;
+                if (notes[item.key]) {
+                    const noteData = notes[item.key];
+                    const notePrev = document.createElement('div');
+                    notePrev.className = `day-note-preview priority-${noteData.priority || 'low'}`;
+                    
+                    let content = '';
+                    if (noteData.time) content += `[${noteData.time}] `;
+                    content += noteData.text;
+                    notePrev.textContent = content;
+                    el.appendChild(notePrev);
+                }
 
-            // Первый день месяца и общее количество дней
-            const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7; // Пн = 0
-            const totalDays = new Date(year, month + 1, 0).getDate();
-            const prevTotalDays = new Date(year, month, 0).getDate();
+                el.addEventListener('click', () => {
+                    openModal(item.key, item.day);
+                });
 
-            // Дни предыдущего месяца для заполнения пустых ячеек в начале
-            for (let i = firstDayIndex - 1; i >= 0; i--) {
-                const dayNum = prevTotalDays - i;
-                const prevMonth = month === 0 ? 11 : month - 1;
-                const prevYear = month === 0 ? year - 1 : year;
-                createDayElement(dayNum, prevYear, prevMonth, true);
-            }
-
-            // Дни текущего месяца
-            const todayStr = new Date().toISOString().split('T')[0];
-            for (let i = 1; i <= totalDays; i++) {
-                createDayElement(i, year, month, false);
-            }
-
-            // Дни следующего месяца для заполнения хвоста сетки (чтобы было ровно 35 или 42 ячейки)
-            const totalCellsDisplayed = firstDayIndex + totalDays;
-            const nextDaysCount = totalCellsDisplayed <= 35 ? 35 - totalCellsDisplayed : 42 - totalCellsDisplayed;
-            for (let i = 1; i <= nextDaysCount; i++) {
-                const nextMonth = month === 11 ? 0 : month + 1;
-                const nextYear = month === 11 ? year + 1 : year;
-                createDayElement(i, nextYear, nextMonth, true);
-            }
-        }
-
-        function createDayElement(dayNum, year, month, isMuted) {
-            const el = document.createElement('div');
-            el.className = 'calendar-day';
-            if (isMuted) el.classList.add('muted');
-
-            const monthFormatted = String(month + 1).padStart(2, '0');
-            const dayFormatted = String(dayNum).padStart(2, '0');
-            const key = `${year}-${monthFormatted}-${dayFormatted}`;
-
-            const todayKey = new Date().toISOString().split('T')[0];
-            if (key === todayKey) {
-                el.classList.add('active');
-            }
-
-            const numEl = document.createElement('div');
-            numEl.className = 'day-number';
-            numEl.textContent = dayNum;
-            el.appendChild(numEl);
-
-            if (notes[key]) {
-                const noteData = notes[key];
-                const notePrev = document.createElement('div');
-                notePrev.className = `day-note-preview priority-${noteData.priority || 'low'}`;
-                
-                let content = '';
-                if (noteData.time) content += `[${noteData.time}] `;
-                content += noteData.text;
-                notePrev.textContent = content;
-                el.appendChild(notePrev);
-            }
-
-            el.addEventListener('click', () => {
-                openModal(key, dayNum, monthNames[month]);
+                grid.appendChild(el);
             });
-
-            grid.appendChild(el);
         }
 
-        function openModal(key, dayNum, monthName) {
+        function openModal(key, dayNum) {
             selectedDayKey = key;
-            document.getElementById('modal-title').textContent = `Заметка на ${dayNum} ${monthName}`;
+            document.getElementById('modal-title').textContent = `Заметка на ${dayNum} сентября`;
             
             const existing = notes[key] || { text: '', time: '', priority: 'low' };
             document.getElementById('modal-textarea').value = existing.text || '';
@@ -602,17 +560,6 @@
 
             btnElement.classList.add('active');
         }
-
-        // Обработчики кликов на стрелки переключения месяцев
-        document.getElementById('prev-month').addEventListener('click', () => {
-            currentDate.setMonth(currentDate.getMonth() - 1);
-            renderCalendar();
-        });
-
-        document.getElementById('next-month').addEventListener('click', () => {
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            renderCalendar();
-        });
 
         renderCalendar();
         renderSchedule();
