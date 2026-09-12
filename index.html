@@ -13,7 +13,6 @@
             --accent-hover: #4f46e5;
             --border-color: #1f2937;
             
-            /* Цвета важности */
             --priority-high: #ef4444;
             --priority-medium: #f59e0b;
             --priority-low: #10b981;
@@ -30,7 +29,6 @@
             min-height: 100vh;
         }
 
-        /* Растянутый и увеличенный календарь */
         .calendar-container {
             background-color: var(--card-bg);
             border-radius: 20px;
@@ -115,7 +113,6 @@
             font-weight: bold;
         }
 
-        /* Модальное окно */
         .modal {
             display: none;
             position: fixed;
@@ -156,7 +153,7 @@
             margin-bottom: 6px;
         }
 
-        .form-group input, .form-group select, .form-group textarea {
+        .form-group input, .form-group textarea {
             width: 100%;
             padding: 10px 12px;
             border-radius: 10px;
@@ -168,12 +165,16 @@
             font-size: 0.95rem;
         }
 
-        .form-group textarea {
-            resize: vertical;
-            height: 90px;
+        .form-group input[type="file"] {
+            padding: 7px;
+            cursor: pointer;
         }
 
-        /* Выбор важности с цветами */
+        .form-group textarea {
+            resize: vertical;
+            height: 80px;
+        }
+
         .priority-selector {
             display: flex;
             gap: 10px;
@@ -242,7 +243,6 @@
         <div class="days-grid" id="days-grid"></div>
     </div>
 
-    <!-- Модальное окно -->
     <div class="modal" id="bookmark-modal">
         <div class="modal-content">
             <h3 id="modal-date-title">Новая закладка</h3>
@@ -272,8 +272,8 @@
             </div>
 
             <div class="form-group">
-                <label for="media-url">Ссылка на медиафайл (картинка/документ):</label>
-                <input type="text" id="media-url" placeholder="https://example.com/image.png">
+                <label for="file-input">Прикрепить файл с компьютера:</label>
+                <input type="file" id="file-input">
             </div>
 
             <div class="modal-actions">
@@ -305,9 +305,8 @@
         const sendDateInput = document.getElementById("send-date");
         const timeInput = document.getElementById("bookmark-time");
         const textInput = document.getElementById("bookmark-text");
-        const mediaInput = document.getElementById("media-url");
+        const fileInput = document.getElementById("file-input");
 
-        // Логика выбора приоритета (цветов)
         document.querySelectorAll('.priority-option').forEach(option => {
             option.addEventListener('click', () => {
                 document.querySelectorAll('.priority-option').forEach(o => o.classList.remove('selected'));
@@ -355,9 +354,9 @@
                 cell.addEventListener("click", () => {
                     selectedDateStr = dateStr;
                     modalTitle.textContent = `Заметка на ${formattedDay}.${formattedMonth}.${year}`;
-                    sendDateInput.value = dateStr; // По умолчанию дата отправки равна выбранному дню
+                    sendDateInput.value = dateStr;
                     textInput.value = "";
-                    mediaInput.value = "";
+                    fileInput.value = "";
                     modal.classList.add("active");
                 });
 
@@ -383,7 +382,6 @@
             const textVal = textInput.value.trim();
             const sendDateVal = sendDateInput.value;
             const timeVal = timeInput.value;
-            const mediaVal = mediaInput.value.trim();
 
             if (!textVal) {
                 alert("Пожалуйста, введите текст закладки!");
@@ -393,23 +391,26 @@
             saveBookmarkBtn.textContent = "Отправка...";
             saveBookmarkBtn.disabled = true;
 
+            const formData = new FormData();
+            formData.append("date", selectedDateStr);
+            formData.append("time", timeVal);
+            formData.append("send_date", sendDateVal);
+            formData.append("priority", selectedPriority);
+            formData.append("text", textVal);
+
+            if (fileInput.files.length > 0) {
+                formData.append("file", fileInput.files[0]);
+            }
+
             try {
                 const response = await fetch(`${BACKEND_URL}/api/send-bookmark`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        date: selectedDateStr,
-                        time: timeVal,
-                        send_date: sendDateVal,
-                        priority: selectedPriority,
-                        text: textVal,
-                        file_url: mediaVal ? mediaVal : null
-                    })
+                    body: formData
                 });
 
                 const result = await response.json();
                 if (response.ok) {
-                    alert("Заметка успешно отправлена боту!");
+                    alert("Заметка и файл успешно отправлены боту!");
                     modal.classList.remove("active");
                 } else {
                     alert("Ошибка: " + (result.detail || "Не удалось отправить"));
