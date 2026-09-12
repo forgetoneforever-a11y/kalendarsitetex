@@ -3,15 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Календарь закладок</title>
+    <title>Расширенный календарь закладок</title>
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-color: #f8fafc;
-            --accent-color: #38bdf8;
-            --accent-hover: #0ea5e9;
-            --border-color: #334155;
+            --bg-color: #0b0f19;
+            --card-bg: #111827;
+            --text-color: #f3f4f6;
+            --accent-color: #6366f1;
+            --accent-hover: #4f46e5;
+            --border-color: #1f2937;
+            
+            --priority-high: #ef4444;
+            --priority-medium: #f59e0b;
+            --priority-low: #10b981;
         }
 
         body {
@@ -27,10 +31,10 @@
 
         .calendar-container {
             background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-            width: 380px;
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            width: 520px;
             border: 1px solid var(--border-color);
         }
 
@@ -38,27 +42,27 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .calendar-header h2 {
             margin: 0;
-            font-size: 1.25rem;
+            font-size: 1.5rem;
         }
 
         .nav-btn {
-            background: none;
+            background: var(--border-color);
             border: none;
             color: var(--text-color);
             font-size: 1.2rem;
             cursor: pointer;
-            padding: 4px 10px;
-            border-radius: 8px;
+            padding: 8px 16px;
+            border-radius: 10px;
             transition: background 0.2s;
         }
 
         .nav-btn:hover {
-            background-color: var(--border-color);
+            background-color: var(--accent-color);
         }
 
         .weekdays {
@@ -66,52 +70,55 @@
             grid-template-columns: repeat(7, 1fr);
             text-align: center;
             font-weight: 600;
-            font-size: 0.85rem;
-            color: #94a3b8;
-            margin-bottom: 10px;
+            font-size: 0.95rem;
+            color: #9ca3af;
+            margin-bottom: 14px;
         }
 
         .days-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 6px;
+            gap: 10px;
         }
 
         .day-cell {
             aspect-ratio: 1;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            background-color: rgba(255, 255, 255, 0.03);
-            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
             cursor: pointer;
-            font-size: 0.95rem;
+            font-size: 1.1rem;
             transition: all 0.2s;
-            border: 1px solid transparent;
+            border: 1px solid var(--border-color);
         }
 
         .day-cell:hover {
             background-color: var(--border-color);
             border-color: var(--accent-color);
+            transform: translateY(-2px);
         }
 
         .day-cell.empty {
             pointer-events: none;
             background: none;
+            border: none;
         }
 
         .day-cell.today {
             border-color: var(--accent-color);
+            background-color: rgba(99, 102, 241, 0.1);
             font-weight: bold;
         }
 
-        /* Модальное окно */
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(4px);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(6px);
             justify-content: center;
             align-items: center;
         }
@@ -122,77 +129,99 @@
 
         .modal-content {
             background-color: var(--card-bg);
-            padding: 24px;
-            border-radius: 14px;
-            width: 320px;
+            padding: 28px;
+            border-radius: 16px;
+            width: 400px;
             border: 1px solid var(--border-color);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
         }
 
         .modal-content h3 {
             margin-top: 0;
-            margin-bottom: 16px;
-            font-size: 1.1rem;
+            margin-bottom: 18px;
+            font-size: 1.3rem;
         }
 
         .form-group {
-            margin-bottom: 14px;
+            margin-bottom: 16px;
         }
 
         .form-group label {
             display: block;
-            font-size: 0.85rem;
-            color: #94a3b8;
+            font-size: 0.9rem;
+            color: #9ca3af;
             margin-bottom: 6px;
         }
 
         .form-group input, .form-group textarea {
             width: 100%;
-            padding: 10px;
-            border-radius: 8px;
+            padding: 10px 12px;
+            border-radius: 10px;
             border: 1px solid var(--border-color);
             background-color: var(--bg-color);
             color: var(--text-color);
             font-family: inherit;
             box-sizing: border-box;
+            font-size: 0.95rem;
         }
 
         .form-group textarea {
             resize: vertical;
-            height: 80px;
+            height: 90px;
         }
+
+        .priority-selector {
+            display: flex;
+            gap: 10px;
+        }
+
+        .priority-option {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
+        }
+
+        .priority-option.high { color: var(--priority-high); }
+        .priority-option.medium { color: var(--priority-medium); }
+        .priority-option.low { color: var(--priority-low); }
+
+        .priority-option.selected.high { background-color: var(--priority-high); color: white; }
+        .priority-option.selected.medium { background-color: var(--priority-medium); color: white; }
+        .priority-option.selected.low { background-color: var(--priority-low); color: white; }
 
         .modal-actions {
             display: flex;
             justify-content: flex-end;
-            gap: 10px;
-            margin-top: 16px;
+            gap: 12px;
+            margin-top: 20px;
         }
 
         .btn {
-            padding: 8px 16px;
-            border-radius: 8px;
+            padding: 10px 18px;
+            border-radius: 10px;
             border: none;
             cursor: pointer;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
         .btn-cancel {
             background-color: transparent;
-            color: #94a3b8;
+            color: #9ca3af;
         }
-        .btn-cancel:hover {
-            color: var(--text-color);
-        }
+        .btn-cancel:hover { color: var(--text-color); }
 
         .btn-submit {
             background-color: var(--accent-color);
-            color: #0f172a;
+            color: white;
         }
-        .btn-submit:hover {
-            background-color: var(--accent-hover);
-        }
+        .btn-submit:hover { background-color: var(--accent-hover); }
     </style>
 </head>
 <body>
@@ -209,31 +238,52 @@
         <div class="days-grid" id="days-grid"></div>
     </div>
 
-    <!-- Модальное окно для создания закладки -->
     <div class="modal" id="bookmark-modal">
         <div class="modal-content">
-            <h3 id="modal-date-title">Заметка на дату</h3>
+            <h3 id="modal-date-title">Новая закладка</h3>
+            
+            <div class="form-group">
+                <label>Важность задачи:</label>
+                <div class="priority-selector">
+                    <div class="priority-option high selected" data-value="high">Красный</div>
+                    <div class="priority-option medium" data-value="medium">Оранжевый</div>
+                    <div class="priority-option low" data-value="low">Зеленый</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="send-date">Дата отправки боту:</label>
+                <input type="date" id="send-date">
+            </div>
+
             <div class="form-group">
                 <label for="bookmark-time">Время отправки:</label>
                 <input type="time" id="bookmark-time" value="12:00">
             </div>
+
             <div class="form-group">
                 <label for="bookmark-text">Текст закладки:</label>
                 <textarea id="bookmark-text" placeholder="Введите текст заметки..."></textarea>
             </div>
+
+            <div class="form-group">
+                <label for="media-url">Ссылка на медиафайл (картинка/документ):</label>
+                <input type="text" id="media-url" placeholder="https://example.com/image.png">
+            </div>
+
             <div class="modal-actions">
                 <button class="btn btn-cancel" id="close-modal">Отмена</button>
-                <button class="btn btn-submit" id="save-bookmark">Отправить</button>
+                <button class="btn btn-submit" id="save-bookmark">Отправить в бота</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Ссылка на твой бэкенд на Render
         const BACKEND_URL = "https://botkalendar.onrender.com";
 
         let currentDate = new Date();
         let selectedDateStr = "";
+        let selectedPriority = "high";
 
         const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
 
@@ -246,8 +296,19 @@
         const modalTitle = document.getElementById("modal-date-title");
         const closeModalBtn = document.getElementById("close-modal");
         const saveBookmarkBtn = document.getElementById("save-bookmark");
+        
+        const sendDateInput = document.getElementById("send-date");
         const timeInput = document.getElementById("bookmark-time");
         const textInput = document.getElementById("bookmark-text");
+        const mediaInput = document.getElementById("media-url");
+
+        document.querySelectorAll('.priority-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.priority-option').forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedPriority = option.getAttribute('data-value');
+            });
+        });
 
         function renderCalendar() {
             const year = currentDate.getFullYear();
@@ -288,7 +349,9 @@
                 cell.addEventListener("click", () => {
                     selectedDateStr = dateStr;
                     modalTitle.textContent = `Заметка на ${formattedDay}.${formattedMonth}.${year}`;
+                    sendDateInput.value = dateStr;
                     textInput.value = "";
+                    mediaInput.value = "";
                     modal.classList.add("active");
                 });
 
@@ -311,8 +374,10 @@
         });
 
         saveBookmarkBtn.addEventListener("click", async () => {
-            const timeVal = timeInput.value;
             const textVal = textInput.value.trim();
+            const sendDateVal = sendDateInput.value;
+            const timeVal = timeInput.value;
+            const mediaVal = mediaInput.value.trim();
 
             if (!textVal) {
                 alert("Пожалуйста, введите текст закладки!");
@@ -329,13 +394,16 @@
                     body: JSON.stringify({
                         date: selectedDateStr,
                         time: timeVal,
-                        text: textVal
+                        send_date: sendDateVal,
+                        priority: selectedPriority,
+                        text: textVal,
+                        file_url: mediaVal ? mediaVal : null
                     })
                 });
 
                 const result = await response.json();
                 if (response.ok) {
-                    alert("Закладка отправлена в Telegram!");
+                    alert("Заметка успешно отправлена боту!");
                     modal.classList.remove("active");
                 } else {
                     alert("Ошибка: " + (result.detail || "Не удалось отправить"));
@@ -344,7 +412,7 @@
                 alert("Ошибка сети при обращении к серверу Render.");
                 console.error(error);
             } finally {
-                saveBookmarkBtn.textContent = "Отправить";
+                saveBookmarkBtn.textContent = "Отправить в бота";
                 saveBookmarkBtn.disabled = false;
             }
         });
