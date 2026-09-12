@@ -13,6 +13,8 @@
             --accent-hover: #4f46e5;
             --border-color: rgba(31, 41, 55, 0.8);
             --border-radius: 24px;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --card-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
             
             --priority-high: #ef4444;
             --priority-medium: #f59e0b;
@@ -20,7 +22,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: var(--font-family);
             color: var(--text-color);
             margin: 0;
             padding: 20px;
@@ -60,7 +62,6 @@
             transition: background 0.3s;
         }
 
-        /* Главный контейнер (сделан широким под твой макет) */
         .main-wrapper {
             position: relative;
             width: 100%;
@@ -74,13 +75,20 @@
             backdrop-filter: blur(12px);
             border-radius: var(--border-radius);
             padding: 40px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
+            box-shadow: var(--card-shadow);
             width: 100%;
             border: 1px solid var(--border-color);
             box-sizing: border-box;
+            transition: box-shadow 0.3s ease;
         }
 
-        /* Крупная иконка-шестеренка прямо в углу карточки */
+        /* Класс для неонового свечения блока */
+        .calendar-container.neon-glow {
+            box-shadow: 0 0 30px var(--accent-color), 0 25px 50px rgba(0, 0, 0, 0.7);
+            border-color: var(--accent-color);
+        }
+
+        /* Кнопка настроек в самом верхнем правом углу карточки */
         .settings-toggle-btn {
             position: absolute;
             top: 20px;
@@ -157,7 +165,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
-            padding-right: 60px; /* Чтобы заголовок не задевал шестеренку */
+            padding-right: 60px;
         }
 
         .calendar-header h2 {
@@ -197,7 +205,7 @@
         }
 
         .day-cell {
-            aspect-ratio: 1.2; /* Делает ячейки слегка вытянутыми под широкий формат */
+            aspect-ratio: 1.2;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -226,6 +234,23 @@
             border-color: var(--accent-color);
             background-color: rgba(99, 102, 241, 0.25);
             font-weight: bold;
+        }
+
+        /* Чекбоксы и кастомные переключатели в настройках */
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            user-select: none;
+        }
+
+        .checkbox-label input {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-color);
         }
 
         /* Модальное окно */
@@ -363,7 +388,7 @@
 
     <div class="main-wrapper">
         <!-- Широкий блок календаря -->
-        <div class="calendar-container">
+        <div class="calendar-container" id="calendar-card">
             <!-- Крупная кнопка настроек в самом верхнем правом углу карточки -->
             <button class="settings-toggle-btn" id="settings-toggle" title="Настройки интерфейса">
                 <svg viewBox="0 0 24 24">
@@ -393,6 +418,22 @@
                 <div class="form-group">
                     <label for="accent-color-picker">Цвет акцента:</label>
                     <input type="color" id="accent-color-picker" value="#6366f1">
+                </div>
+
+                <div class="form-group">
+                    <label for="font-select">Стиль шрифта:</label>
+                    <select id="font-select">
+                        <option value="'Segoe UI', Tahoma, Geneva, Verdana, sans-serif">Современный (Segoe UI)</option>
+                        <option value="'Courier New', Courier, monospace">Киберпанк / Ретро (Monospace)</option>
+                        <option value="Georgia, serif">Строгий (Georgia)</option>
+                        <option value="'Comic Sans MS', cursive, sans-serif">Игровой / Чиловый</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="neon-glow-check"> Неоновое свечение блока
+                    </label>
                 </div>
 
                 <button class="btn btn-reset" id="reset-settings">Сбросить настройки</button>
@@ -486,6 +527,9 @@
             const radiusRange = document.getElementById("radius-range");
             const radiusVal = document.getElementById("radius-val");
             const accentColorPicker = document.getElementById("accent-color-picker");
+            const fontSelect = document.getElementById("font-select");
+            const neonGlowCheck = document.getElementById("neon-glow-check");
+            const calendarCard = document.getElementById("calendar-card");
             const resetSettingsBtn = document.getElementById("reset-settings");
 
             // Открытие/закрытие панели настроек по клику на шестеренку
@@ -496,7 +540,6 @@
                     settingsToggleBtn.classList.toggle("active");
                 });
 
-                // Закрытие при клике вне панели
                 document.addEventListener("click", (e) => {
                     if (!settingsPanel.contains(e.target) && !settingsToggleBtn.contains(e.target)) {
                         settingsPanel.classList.remove("active");
@@ -567,6 +610,18 @@
                 if (savedAccent !== null && accentColorPicker) {
                     accentColorPicker.value = savedAccent;
                     document.documentElement.style.setProperty('--accent-color', savedAccent);
+                }
+
+                const savedFont = localStorage.getItem("app_font");
+                if (savedFont !== null && fontSelect) {
+                    fontSelect.value = savedFont;
+                    document.documentElement.style.setProperty('--font-family', savedFont);
+                }
+
+                const savedGlow = localStorage.getItem("app_neon_glow");
+                if (savedGlow === "true" && neonGlowCheck && calendarCard) {
+                    neonGlowCheck.checked = true;
+                    calendarCard.classList.add("neon-glow");
                 }
 
                 const savedBgType = localStorage.getItem("app_bg_type");
@@ -769,6 +824,26 @@
                     const val = e.target.value;
                     document.documentElement.style.setProperty('--accent-color', val);
                     localStorage.setItem("app_accent", val);
+                });
+            }
+
+            if (fontSelect) {
+                fontSelect.addEventListener("change", (e) => {
+                    const val = e.target.value;
+                    document.documentElement.style.setProperty('--font-family', val);
+                    localStorage.setItem("app_font", val);
+                });
+            }
+
+            if (neonGlowCheck && calendarCard) {
+                neonGlowCheck.addEventListener("change", (e) => {
+                    const isChecked = e.target.checked;
+                    if (isChecked) {
+                        calendarCard.classList.add("neon-glow");
+                    } else {
+                        calendarCard.classList.remove("neon-glow");
+                    }
+                    localStorage.setItem("app_neon_glow", isChecked);
                 });
             }
 
