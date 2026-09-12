@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мобильный календарь закладок</title>
+    <title>Календарь закладок и домашки</title>
     <style>
         :root {
             --bg-color: #0b0f19;
@@ -23,21 +23,21 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 16px;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            padding: 16px;
             box-sizing: border-box;
         }
 
         .calendar-container {
             background-color: var(--card-bg);
             border-radius: 20px;
-            padding: 20px;
+            padding: 32px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
             width: 100%;
-            max-width: 480px;
+            max-width: 520px; /* Нормальная ширина для ПК, на мобилках сожмется до 100% */
             border: 1px solid var(--border-color);
             box-sizing: border-box;
         }
@@ -46,26 +46,26 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .calendar-header h2 {
             margin: 0;
-            font-size: 1.3rem;
+            font-size: 1.5rem;
         }
 
         .nav-btn {
             background: var(--border-color);
             border: none;
             color: var(--text-color);
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             cursor: pointer;
-            padding: 8px 14px;
+            padding: 8px 16px;
             border-radius: 10px;
             transition: background 0.2s;
         }
 
-        .nav-btn:active {
+        .nav-btn:hover {
             background-color: var(--accent-color);
         }
 
@@ -74,15 +74,15 @@
             grid-template-columns: repeat(7, 1fr);
             text-align: center;
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             color: #9ca3af;
-            margin-bottom: 10px;
+            margin-bottom: 14px;
         }
 
         .days-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 6px;
+            gap: 10px;
         }
 
         .day-cell {
@@ -92,16 +92,17 @@
             justify-content: center;
             align-items: center;
             background-color: rgba(255, 255, 255, 0.02);
-            border-radius: 10px;
+            border-radius: 12px;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 1.1rem;
+            transition: all 0.2s;
             border: 1px solid var(--border-color);
-            user-select: none;
         }
 
-        .day-cell:active {
+        .day-cell:hover {
             background-color: var(--border-color);
             border-color: var(--accent-color);
+            transform: translateY(-2px);
         }
 
         .day-cell.empty {
@@ -121,10 +122,10 @@
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(6px);
             justify-content: center;
-            align-items: flex-end; /* На мобилках выравниваем снизу (как шторку) или по центру */
+            align-items: center;
         }
 
         .modal.active {
@@ -133,79 +134,71 @@
 
         .modal-content {
             background-color: var(--card-bg);
-            padding: 24px 20px;
-            border-radius: 20px 20px 0 0; /* Закругление сверху для мобильного вида */
+            padding: 28px;
+            border-radius: 16px;
             width: 100%;
-            max-width: 480px;
+            max-width: 400px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            box-sizing: border-box;
             max-height: 90vh;
             overflow-y: auto;
-            border-top: 1px solid var(--border-color);
-            box-shadow: 0 -10px 25px rgba(0,0,0,0.5);
-            box-sizing: border-box;
-        }
-
-        @media (min-width: 600px) {
-            .modal {
-                align-items: center; /* На ПК возвращаем по центру */
-            }
-            .modal-content {
-                border-radius: 16px;
-                max-width: 400px;
-            }
         }
 
         .modal-content h3 {
             margin-top: 0;
-            margin-bottom: 16px;
-            font-size: 1.2rem;
+            margin-bottom: 18px;
+            font-size: 1.3rem;
         }
 
         .form-group {
-            margin-bottom: 14px;
+            margin-bottom: 16px;
         }
 
         .form-group label {
             display: block;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: #9ca3af;
             margin-bottom: 6px;
         }
 
         .form-group input, .form-group textarea {
             width: 100%;
-            padding: 12px;
+            padding: 10px 12px;
             border-radius: 10px;
             border: 1px solid var(--border-color);
             background-color: var(--bg-color);
             color: var(--text-color);
             font-family: inherit;
             box-sizing: border-box;
-            font-size: 1rem; /* Крупный шрифт, чтобы не зумилось на iOS */
+            font-size: 0.95rem;
         }
 
         .form-group input[type="file"] {
-            padding: 8px;
+            padding: 7px;
+            cursor: pointer;
         }
 
         .form-group textarea {
-            resize: none;
+            resize: vertical;
             height: 80px;
         }
 
         .priority-selector {
             display: flex;
-            gap: 8px;
+            gap: 10px;
         }
 
         .priority-option {
             flex: 1;
-            padding: 10px 6px;
+            padding: 8px;
             text-align: center;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             font-weight: 600;
             border: 1px solid var(--border-color);
+            transition: all 0.2s;
         }
 
         .priority-option.high { color: var(--priority-high); }
@@ -218,28 +211,60 @@
 
         .modal-actions {
             display: flex;
-            gap: 10px;
+            justify-content: flex-end;
+            gap: 12px;
             margin-top: 20px;
         }
 
         .btn {
-            flex: 1;
-            padding: 12px;
+            padding: 10px 18px;
             border-radius: 10px;
             border: none;
             cursor: pointer;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.95rem;
         }
 
         .btn-cancel {
-            background-color: var(--border-color);
+            background-color: transparent;
             color: #9ca3af;
         }
+        .btn-cancel:hover { color: var(--text-color); }
 
         .btn-submit {
             background-color: var(--accent-color);
             color: white;
+        }
+        .btn-submit:hover { background-color: var(--accent-hover); }
+
+        /* Мобильная адаптация: если экран узкий (телефоны) */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            .calendar-container {
+                padding: 16px;
+                border-radius: 14px;
+            }
+            .calendar-header h2 {
+                font-size: 1.15rem;
+            }
+            .day-cell {
+                font-size: 0.95rem;
+            }
+            .modal-content {
+                padding: 20px;
+                max-height: 95vh;
+            }
+            .modal-actions {
+                flex-direction: column-reverse;
+                gap: 8px;
+            }
+            .btn {
+                width: 100%;
+                padding: 12px;
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -262,10 +287,10 @@
             <h3 id="modal-date-title">Новая закладка</h3>
             
             <div class="form-group">
-                <label>Важность:</label>
+                <label>Важность задачи:</label>
                 <div class="priority-selector">
                     <div class="priority-option high selected" data-value="high">Красный</div>
-                    <div class="priority-option medium" data-value="medium">Оранж.</div>
+                    <div class="priority-option medium" data-value="medium">Оранжевый</div>
                     <div class="priority-option low" data-value="low">Зеленый</div>
                 </div>
             </div>
@@ -276,23 +301,23 @@
             </div>
 
             <div class="form-group">
-                <label for="bookmark-time">Время:</label>
+                <label for="bookmark-time">Время отправки:</label>
                 <input type="time" id="bookmark-time" value="12:00">
             </div>
 
             <div class="form-group">
-                <label for="bookmark-text">Текст:</label>
+                <label for="bookmark-text">Текст закладки:</label>
                 <textarea id="bookmark-text" placeholder="Введите текст заметки..."></textarea>
             </div>
 
             <div class="form-group">
-                <label for="file-input">Файл с телефона:</label>
+                <label for="file-input">Прикрепить файл:</label>
                 <input type="file" id="file-input">
             </div>
 
             <div class="modal-actions">
                 <button class="btn btn-cancel" id="close-modal">Отмена</button>
-                <button class="btn btn-submit" id="save-bookmark">Отправить</button>
+                <button class="btn btn-submit" id="save-bookmark">Отправить в бота</button>
             </div>
         </div>
     </div>
@@ -398,7 +423,7 @@
             const timeVal = timeInput.value;
 
             if (!textVal) {
-                alert("Введите текст закладки!");
+                alert("Пожалуйста, введите текст закладки!");
                 return;
             }
 
@@ -424,16 +449,16 @@
 
                 const result = await response.json();
                 if (response.ok) {
-                    alert("Успешно отправлено!");
+                    alert("Заметка и файл успешно отправлены боту!");
                     modal.classList.remove("active");
                 } else {
                     alert("Ошибка: " + (result.detail || "Не удалось отправить"));
                 }
             } catch (error) {
-                alert("Ошибка сети.");
+                alert("Ошибка сети при обращении к серверу Render.");
                 console.error(error);
             } finally {
-                saveBookmarkBtn.textContent = "Отправить";
+                saveBookmarkBtn.textContent = "Отправить в бота";
                 saveBookmarkBtn.disabled = false;
             }
         });
