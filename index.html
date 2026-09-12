@@ -229,8 +229,8 @@
     </div>
 
     <script>
-        // ЗАМЕНИ НА СВОЙ URL С RENDER КОГДА ЗАДЕПЛОИШЬ БЭКЕНД
-        const BACKEND_URL = "https://your-backend.onrender.com";
+        // Ссылка на твой бэкенд на Render
+        const BACKEND_URL = "https://botkalendar.onrender.com";
 
         let currentDate = new Date();
         let selectedDateStr = "";
@@ -256,20 +256,17 @@
             monthYearEl.textContent = `${monthNames[month]} ${year}`;
             daysGridEl.innerHTML = "";
 
-            // Первый день месяца (смещение для понедельника)
             let firstDayIndex = new Date(year, month, 1).getDay();
-            firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1; // Корректировка для Пн
+            firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
 
             const totalDays = new Date(year, month + 1, 0).getDate();
 
-            // Пустые ячейки для дней предыдущего месяца
             for (let i = 0; i < firstDayIndex; i++) {
                 const emptyCell = document.createElement("div");
                 emptyCell.classList.add("day-cell", "empty");
                 daysGridEl.appendChild(emptyCell);
             }
 
-            // Дни текущего месяца
             const today = new Date();
             for (let day = 1; day <= totalDays; day++) {
                 const cell = document.createElement("div");
