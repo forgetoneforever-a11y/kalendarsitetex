@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мобильный календарь закладок</title>
+    <title>Универсальный календарь и органайзер</title>
     <style>
         :root {
-            --bg-color: #0b0f19;
-            --card-bg: #111827;
+            --bg-color: rgba(11, 15, 25, 0.85);
+            --card-bg: rgba(17, 24, 39, 0.85);
             --text-color: #f3f4f6;
             --accent-color: #6366f1;
             --accent-hover: #4f46e5;
-            --border-color: #1f2937;
+            --border-color: rgba(31, 41, 55, 0.8);
+            --border-radius: 20px;
             
             --priority-high: #ef4444;
             --priority-medium: #f59e0b;
@@ -20,26 +21,81 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 16px;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             box-sizing: border-box;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Фоновое видео или картинка */
+        #bg-media {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -2;
+            background-color: #0b0f19;
+        }
+
+        /* Затемнение фона */
+        #bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+            transition: background 0.3s;
+        }
+
+        .main-wrapper {
+            display: flex;
+            gap: 24px;
+            width: 100%;
+            max-width: 900px;
+            box-sizing: border-box;
         }
 
         .calendar-container {
             background-color: var(--card-bg);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-            width: 100%;
-            max-width: 480px;
+            backdrop-filter: blur(12px);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            flex: 1;
             border: 1px solid var(--border-color);
             box-sizing: border-box;
+        }
+
+        /* Панель настроек справа */
+        .settings-panel {
+            background-color: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            width: 300px;
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .settings-panel h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
         }
 
         .calendar-header {
@@ -51,7 +107,7 @@
 
         .calendar-header h2 {
             margin: 0;
-            font-size: 1.3rem;
+            font-size: 1.4rem;
         }
 
         .nav-btn {
@@ -65,7 +121,7 @@
             transition: background 0.2s;
         }
 
-        .nav-btn:active {
+        .nav-btn:hover {
             background-color: var(--accent-color);
         }
 
@@ -74,7 +130,7 @@
             grid-template-columns: repeat(7, 1fr);
             text-align: center;
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: #9ca3af;
             margin-bottom: 10px;
         }
@@ -82,7 +138,7 @@
         .days-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 6px;
+            gap: 8px;
         }
 
         .day-cell {
@@ -91,17 +147,18 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background-color: rgba(255, 255, 255, 0.02);
-            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
             cursor: pointer;
             font-size: 1rem;
             border: 1px solid var(--border-color);
             user-select: none;
+            transition: all 0.2s;
         }
 
-        .day-cell:active {
-            background-color: var(--border-color);
+        .day-cell:hover {
             border-color: var(--accent-color);
+            background-color: rgba(99, 102, 241, 0.1);
         }
 
         .day-cell.empty {
@@ -112,7 +169,7 @@
 
         .day-cell.today {
             border-color: var(--accent-color);
-            background-color: rgba(99, 102, 241, 0.15);
+            background-color: rgba(99, 102, 241, 0.2);
             font-weight: bold;
         }
 
@@ -121,10 +178,11 @@
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(6px);
             justify-content: center;
-            align-items: flex-end; /* На мобилках выравниваем снизу (как шторку) или по центру */
+            align-items: center;
+            z-index: 10;
         }
 
         .modal.active {
@@ -132,26 +190,14 @@
         }
 
         .modal-content {
-            background-color: var(--card-bg);
-            padding: 24px 20px;
-            border-radius: 20px 20px 0 0; /* Закругление сверху для мобильного вида */
+            background-color: #111827;
+            padding: 24px;
+            border-radius: var(--border-radius);
             width: 100%;
-            max-width: 480px;
-            max-height: 90vh;
-            overflow-y: auto;
-            border-top: 1px solid var(--border-color);
-            box-shadow: 0 -10px 25px rgba(0,0,0,0.5);
+            max-width: 420px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
             box-sizing: border-box;
-        }
-
-        @media (min-width: 600px) {
-            .modal {
-                align-items: center; /* На ПК возвращаем по центру */
-            }
-            .modal-content {
-                border-radius: 16px;
-                max-width: 400px;
-            }
         }
 
         .modal-content h3 {
@@ -171,25 +217,21 @@
             margin-bottom: 6px;
         }
 
-        .form-group input, .form-group textarea {
+        .form-group input, .form-group textarea, .form-group select {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             border-radius: 10px;
             border: 1px solid var(--border-color);
-            background-color: var(--bg-color);
+            background-color: #0b0f19;
             color: var(--text-color);
             font-family: inherit;
             box-sizing: border-box;
-            font-size: 1rem; /* Крупный шрифт, чтобы не зумилось на iOS */
-        }
-
-        .form-group input[type="file"] {
-            padding: 8px;
+            font-size: 0.95rem;
         }
 
         .form-group textarea {
             resize: none;
-            height: 80px;
+            height: 70px;
         }
 
         .priority-selector {
@@ -199,7 +241,7 @@
 
         .priority-option {
             flex: 1;
-            padding: 10px 6px;
+            padding: 8px 4px;
             text-align: center;
             border-radius: 8px;
             cursor: pointer;
@@ -224,12 +266,12 @@
 
         .btn {
             flex: 1;
-            padding: 12px;
+            padding: 10px;
             border-radius: 10px;
             border: none;
             cursor: pointer;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.95rem;
         }
 
         .btn-cancel {
@@ -241,22 +283,70 @@
             background-color: var(--accent-color);
             color: white;
         }
+        
+        .btn-submit:hover {
+            background-color: var(--accent-hover);
+        }
+
+        /* Адаптивность для телефонов */
+        @media (max-width: 800px) {
+            .main-wrapper {
+                flex-direction: column;
+                align-items: center;
+            }
+            .settings-panel {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <div class="calendar-container">
-        <div class="calendar-header">
-            <button class="nav-btn" id="prev-month">&#10094;</button>
-            <h2 id="month-year">Месяц Год</h2>
-            <button class="nav-btn" id="next-month">&#10095;</button>
+    <!-- Фоновый элемент (картинка или видео) -->
+    <video id="bg-media" autoplay muted loop playsinline style="display: none;"></video>
+    <div id="bg-overlay"></div>
+
+    <div class="main-wrapper">
+        <!-- Блок календаря -->
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <button class="nav-btn" id="prev-month">&#10094;</button>
+                <h2 id="month-year">Месяц Год</h2>
+                <button class="nav-btn" id="next-month">&#10095;</button>
+            </div>
+            <div class="weekdays">
+                <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+            </div>
+            <div class="days-grid" id="days-grid"></div>
         </div>
-        <div class="weekdays">
-            <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+
+        <!-- Панель настроек интерфейса -->
+        <div class="settings-panel">
+            <h3>Настройки интерфейса</h3>
+            
+            <div class="form-group">
+                <label for="bg-file-input">Загрузить фон (Фото / MP4):</label>
+                <input type="file" id="bg-file-input" accept="image/*,video/mp4">
+            </div>
+
+            <div class="form-group">
+                <label for="overlay-range">Затемнение фона:</label>
+                <input type="range" id="overlay-range" min="0" max="0.9" step="0.05" value="0.5">
+            </div>
+
+            <div class="form-group">
+                <label for="radius-range">Скругление блоков:</label>
+                <input type="range" id="radius-range" min="5" max="35" value="20">
+            </div>
+
+            <div class="form-group">
+                <label for="accent-color-picker">Цвет акцента:</label>
+                <input type="color" id="accent-color-picker" value="#6366f1">
+            </div>
         </div>
-        <div class="days-grid" id="days-grid"></div>
     </div>
 
+    <!-- Модальное окно -->
     <div class="modal" id="bookmark-modal">
         <div class="modal-content">
             <h3 id="modal-date-title">Новая закладка</h3>
@@ -271,7 +361,7 @@
             </div>
 
             <div class="form-group">
-                <label for="send-date">Дата отправки боту:</label>
+                <label for="send-date">Дата:</label>
                 <input type="date" id="send-date">
             </div>
 
@@ -286,13 +376,13 @@
             </div>
 
             <div class="form-group">
-                <label for="file-input">Файл с телефона:</label>
+                <label for="file-input">Файл:</label>
                 <input type="file" id="file-input">
             </div>
 
             <div class="modal-actions">
                 <button class="btn btn-cancel" id="close-modal">Отмена</button>
-                <button class="btn btn-submit" id="save-bookmark">Отправить</button>
+                <button class="btn btn-submit" id="save-bookmark">Сохранить</button>
             </div>
         </div>
     </div>
@@ -320,6 +410,14 @@
         const timeInput = document.getElementById("bookmark-time");
         const textInput = document.getElementById("bookmark-text");
         const fileInput = document.getElementById("file-input");
+
+        // Элементы настроек
+        const bgFileInput = document.getElementById("bg-file-input");
+        const bgMedia = document.getElementById("bg-media");
+        const bgOverlay = document.getElementById("bg-overlay");
+        const overlayRange = document.getElementById("overlay-range");
+        const radiusRange = document.getElementById("radius-range");
+        const accentColorPicker = document.getElementById("accent-color-picker");
 
         document.querySelectorAll('.priority-option').forEach(option => {
             option.addEventListener('click', () => {
@@ -402,7 +500,7 @@
                 return;
             }
 
-            saveBookmarkBtn.textContent = "Отправка...";
+            saveBookmarkBtn.textContent = "Сохранение...";
             saveBookmarkBtn.disabled = true;
 
             const formData = new FormData();
@@ -424,7 +522,7 @@
 
                 const result = await response.json();
                 if (response.ok) {
-                    alert("Успешно отправлено!");
+                    alert("Успешно сохранено!");
                     modal.classList.remove("active");
                 } else {
                     alert("Ошибка: " + (result.detail || "Не удалось отправить"));
@@ -433,9 +531,39 @@
                 alert("Ошибка сети.");
                 console.error(error);
             } finally {
-                saveBookmarkBtn.textContent = "Отправить";
+                saveBookmarkBtn.textContent = "Сохранить";
                 saveBookmarkBtn.disabled = false;
             }
+        });
+
+        // Логика кастомизации из панели настроек
+        bgFileInput.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const fileURL = URL.createObjectURL(file);
+
+            if (file.type.startsWith("video/")) {
+                bgMedia.style.display = "block";
+                document.body.style.backgroundImage = "none";
+                bgMedia.src = fileURL;
+            } else if (file.type.startsWith("image/")) {
+                bgMedia.style.display = "none";
+                document.body.style.backgroundImage = `url('${fileURL}')`;
+                document.body.style.backgroundSize = "cover";
+                document.body.style.backgroundPosition = "center";
+            }
+        });
+
+        overlayRange.addEventListener("input", (e) => {
+            bgOverlay.style.backgroundColor = `rgba(0, 0, 0, ${e.target.value})`;
+        });
+
+        radiusRange.addEventListener("input", (e) => {
+            document.documentElement.style.setProperty('--border-radius', `${e.target.value}px`);
+        });
+
+        accentColorPicker.addEventListener("input", (e) => {
+            document.documentElement.style.setProperty('--accent-color', e.target.value);
         });
 
         renderCalendar();
