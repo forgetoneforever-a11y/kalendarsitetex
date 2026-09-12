@@ -438,6 +438,49 @@
             const accentColorPicker = document.getElementById("accent-color-picker");
             const resetSettingsBtn = document.getElementById("reset-settings");
 
+            // --- IndexedDB для тяжелых видео (без лимитов localStorage) ---
+            let db;
+            const request = indexedDB.open("VideoBgDB", 1);
+
+            request.onupgradeneeded = (e) => {
+                db = e.target.result;
+                if (!db.objectStoreNames.contains("videos")) {
+                    db.createObjectStore("videos");
+                }
+            };
+
+            request.onsuccess = (e) => {
+                db = e.target.result;
+                loadSavedSettings();
+            };
+
+            function saveVideoToIndexedDB(file) {
+                if (!db) return;
+                const transaction = db.transaction(["videos"], "readwrite");
+                const store = transaction.objectStore("videos");
+                store.put(file, "background_video");
+
+                transaction.oncomplete = () => {
+                    const fileURL = URL.createObjectURL(file);
+                    applyBackground(file.type, fileURL);
+                };
+            }
+
+            function loadVideoFromIndexedDB() {
+                if (!db) return;
+                const transaction = db.transaction(["videos"], "readonly");
+                const store = transaction.objectStore("videos");
+                const getRequest = store.get("background_video");
+
+                getRequest.onsuccess = (e) => {
+                    const file = e.target.result;
+                    if (file) {
+                        const fileURL = URL.createObjectURL(file);
+                        applyBackground(file.type, fileURL);
+                    }
+                };
+            }
+
             function loadSavedSettings() {
                 const savedOverlay = localStorage.getItem("app_overlay");
                 if (savedOverlay !== null && overlayRange) {
@@ -459,11 +502,14 @@
                     document.documentElement.style.setProperty('--accent-color', savedAccent);
                 }
 
+                // Загружаем картинку, если она была сохранена в localStorage
                 const savedBgType = localStorage.getItem("app_bg_type");
                 const savedBgData = localStorage.getItem("app_bg_data");
-
                 if (savedBgType && savedBgData) {
                     applyBackground(savedBgType, savedBgData);
+                } else {
+                    // Иначе пытаемся загрузить видео из IndexedDB
+                    loadVideoFromIndexedDB();
                 }
             }
 
@@ -487,18 +533,29 @@
                     const file = e.target.files[0];
                     if (!file) return;
 
-                    if (navigator.storage && navigator.storage.persist) {
-                        navigator.storage.persist().catch(err => console.log(err));
-                    }
+                    if (file.type.startsWith("video/")) {
+                        // Чистим старую картинку из localStorage, если была
+                        localStorage.removeItem("app_bg_type");
+                        localStorage.removeItem("app_bg_data");
+                        
+                        saveVideoToIndexedDB(file);
+                    } else if (file.type.startsWith("image/")) {
+                        // Картинки маленькие, их можно хранить в localStorage
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            localStorage.setItem("app_bg_type", file.type);
+                            localStorage.setItem("app_bg_data", event.target.result);
+                            
+                            // Удаляем видео из IndexedDB при смене на картинку
+                            if (db) {
+                                const tx = db.transaction(["videos"], "readwrite");
+                                tx.objectStore("videos").delete("background_video");
+                            }
 
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        const base64Data = event.target.result;
-                        localStorage.setItem("app_bg_type", file.type);
-                        localStorage.setItem("app_bg_data", base64Data);
-                        applyBackground(file.type, base64Data);
-                    };
-                    reader.readAsDataURL(file);
+                            applyBackground(file.type, event.target.result);
+                        };
+                        reader.readAsDataURL(file);
+                    }
                 });
             }
 
@@ -658,12 +715,15 @@
                 resetSettingsBtn.addEventListener("click", () => {
                     if (confirm("Сбросить все настройки интерфейса и фон?")) {
                         localStorage.clear();
+                        if (db) {
+                            const tx = db.transaction(["videos"], "readwrite");
+                            tx.objectStore("videos").clear();
+                        }
                         location.reload();
                     }
                 });
             }
 
-            loadSavedSettings();
             renderCalendar();
         });
     </script>
