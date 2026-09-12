@@ -1,254 +1,671 @@
-<script>
-        const BACKEND_URL = "https://botkalendar.onrender.com";
-
-        let currentDate = new Date();
-        let selectedDateStr = "";
-        let selectedPriority = "high";
-
-        const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
-
-        const monthYearEl = document.getElementById("month-year");
-        const daysGridEl = document.getElementById("days-grid");
-        const prevMonthBtn = document.getElementById("prev-month");
-        const nextMonthBtn = document.getElementById("next-month");
-        
-        const modal = document.getElementById("bookmark-modal");
-        const modalTitle = document.getElementById("modal-date-title");
-        const closeModalBtn = document.getElementById("close-modal");
-        const saveBookmarkBtn = document.getElementById("save-bookmark");
-        
-        const sendDateInput = document.getElementById("send-date");
-        const timeInput = document.getElementById("bookmark-time");
-        const textInput = document.getElementById("bookmark-text");
-        const fileInput = document.getElementById("file-input");
-
-        const bgFileInput = document.getElementById("bg-file-input");
-        const bgMedia = document.getElementById("bg-media");
-        const bgOverlay = document.getElementById("bg-overlay");
-        const overlayRange = document.getElementById("overlay-range");
-        const overlayVal = document.getElementById("overlay-val");
-        const radiusRange = document.getElementById("radius-range");
-        const radiusVal = document.getElementById("radius-val");
-        const accentColorPicker = document.getElementById("accent-color-picker");
-        const resetSettingsBtn = document.getElementById("reset-settings");
-
-        // --- Жесткое сохранение через Base64 и localStorage (обход сброса IndexedDB) ---
-        
-        function loadSavedSettings() {
-            // Загружаем настройки дизайна
-            const savedOverlay = localStorage.getItem("app_overlay");
-            if (savedOverlay !== null) {
-                overlayRange.value = savedOverlay;
-                overlayVal.textContent = savedOverlay;
-                bgOverlay.style.backgroundColor = `rgba(0, 0, 0, ${savedOverlay})`;
-            }
-
-            const savedRadius = localStorage.getItem("app_radius");
-            if (savedRadius !== null) {
-                radiusRange.value = savedRadius;
-                radiusVal.textContent = savedRadius;
-                document.documentElement.style.setProperty('--border-radius', `${savedRadius}px`);
-            }
-
-            const savedAccent = localStorage.getItem("app_accent");
-            if (savedAccent !== null) {
-                accentColorPicker.value = savedAccent;
-                document.documentElement.style.setProperty('--accent-color', savedAccent);
-            }
-
-            // Загружаем фоновое видео/картинку из localStorage
-            const savedBgType = localStorage.getItem("app_bg_type");
-            const savedBgData = localStorage.getItem("app_bg_data");
-
-            if (savedBgType && savedBgData) {
-                applyBackground(savedBgType, savedBgData);
-            }
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Универсальный календарь и органайзер</title>
+    <style>
+        :root {
+            --bg-color: rgba(11, 15, 25, 0.85);
+            --card-bg: rgba(17, 24, 39, 0.85);
+            --text-color: #f3f4f6;
+            --accent-color: #6366f1;
+            --accent-hover: #4f46e5;
+            --border-color: rgba(31, 41, 55, 0.8);
+            --border-radius: 20px;
+            
+            --priority-high: #ef4444;
+            --priority-medium: #f59e0b;
+            --priority-low: #10b981;
         }
 
-        function applyBackground(type, url) {
-            if (type.startsWith("video/")) {
-                bgMedia.style.display = "block";
-                document.body.style.backgroundImage = "none";
-                bgMedia.src = url;
-                bgMedia.load();
-                bgMedia.play().catch(err => console.log("Автозапуск:", err));
-            } else if (type.startsWith("image/")) {
-                bgMedia.style.display = "none";
-                bgMedia.src = "";
-                document.body.style.backgroundImage = `url('${url}')`;
-            }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+            position: relative;
+            overflow-x: hidden;
+            background-size: cover;
+            background-position: center;
+            background-color: #0b0f19;
         }
 
-        // Конвертируем файл в Base64, чтобы он не удалялся браузером
-        bgFileInput.addEventListener("change", (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+        /* Фоновое видео или картинка */
+        #bg-media {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -2;
+            display: none;
+        }
 
-            // Просим браузер запросить постоянное хранилище (чтобы он не чистил файл сам)
-            if (navigator.storage && navigator.storage.persist) {
-                navigator.storage.persist().then(granted => {
-                    console.log("Постоянное хранилище:", granted);
+        /* Затемнение фона */
+        #bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+            transition: background 0.3s;
+        }
+
+        .main-wrapper {
+            display: flex;
+            gap: 24px;
+            width: 100%;
+            max-width: 900px;
+            box-sizing: border-box;
+        }
+
+        .calendar-container {
+            background-color: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            flex: 1;
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
+        }
+
+        /* Панель настроек справа */
+        .settings-panel {
+            background-color: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            width: 300px;
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .settings-panel h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-header h2 {
+            margin: 0;
+            font-size: 1.4rem;
+        }
+
+        .nav-btn {
+            background: var(--border-color);
+            border: none;
+            color: var(--text-color);
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 8px 14px;
+            border-radius: 10px;
+            transition: background 0.2s;
+        }
+
+        .nav-btn:hover {
+            background-color: var(--accent-color);
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #9ca3af;
+            margin-bottom: 10px;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            border: 1px solid var(--border-color);
+            user-select: none;
+            transition: all 0.2s;
+        }
+
+        .day-cell:hover {
+            border-color: var(--accent-color);
+            background-color: rgba(99, 102, 241, 0.1);
+        }
+
+        .day-cell.empty {
+            pointer-events: none;
+            background: none;
+            border: none;
+        }
+
+        .day-cell.today {
+            border-color: var(--accent-color);
+            background-color: rgba(99, 102, 241, 0.2);
+            font-weight: bold;
+        }
+
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(6px);
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: #111827;
+            padding: 24px;
+            border-radius: var(--border-radius);
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            box-sizing: border-box;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            font-size: 1.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: #9ca3af;
+            margin-bottom: 6px;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background-color: #0b0f19;
+            color: var(--text-color);
+            font-family: inherit;
+            box-sizing: border-box;
+            font-size: 0.95rem;
+        }
+
+        .form-group textarea {
+            resize: none;
+            height: 70px;
+        }
+
+        .priority-selector {
+            display: flex;
+            gap: 8px;
+        }
+
+        .priority-option {
+            flex: 1;
+            padding: 8px 4px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+        }
+
+        .priority-option.high { color: var(--priority-high); }
+        .priority-option.medium { color: var(--priority-medium); }
+        .priority-option.low { color: var(--priority-low); }
+
+        .priority-option.selected.high { background-color: var(--priority-high); color: white; }
+        .priority-option.selected.medium { background-color: var(--priority-medium); color: white; }
+        .priority-option.selected.low { background-color: var(--priority-low); color: white; }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .btn-cancel {
+            background-color: var(--border-color);
+            color: #9ca3af;
+        }
+
+        .btn-submit {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        
+        .btn-submit:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-reset {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            margin-top: 5px;
+        }
+        .btn-reset:hover {
+            background-color: rgba(239, 68, 68, 0.4);
+            color: white;
+        }
+
+        /* Адаптивность для телефонов */
+        @media (max-width: 800px) {
+            .main-wrapper {
+                flex-direction: column;
+                align-items: center;
+            }
+            .settings-panel {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Фоновый элемент (картинка или видео) -->
+    <video id="bg-media" autoplay muted loop playsinline></video>
+    <div id="bg-overlay"></div>
+
+    <div class="main-wrapper">
+        <!-- Блок календаря -->
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <button class="nav-btn" id="prev-month">&#10094;</button>
+                <h2 id="month-year">Месяц Год</h2>
+                <button class="nav-btn" id="next-month">&#10095;</button>
+            </div>
+            <div class="weekdays">
+                <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+            </div>
+            <div class="days-grid" id="days-grid"></div>
+        </div>
+
+        <!-- Панель настроек интерфейса -->
+        <div class="settings-panel">
+            <h3>Настройки интерфейса</h3>
+            
+            <div class="form-group">
+                <label for="bg-file-input">Загрузить фон (Фото / MP4):</label>
+                <input type="file" id="bg-file-input" accept="image/*,video/mp4">
+            </div>
+
+            <div class="form-group">
+                <label for="overlay-range">Затемнение фона: <span id="overlay-val">0.5</span></label>
+                <input type="range" id="overlay-range" min="0" max="0.9" step="0.05" value="0.5">
+            </div>
+
+            <div class="form-group">
+                <label for="radius-range">Скругление блоков: <span id="radius-val">20</span>px</label>
+                <input type="range" id="radius-range" min="5" max="35" value="20">
+            </div>
+
+            <div class="form-group">
+                <label for="accent-color-picker">Цвет акцента:</label>
+                <input type="color" id="accent-color-picker" value="#6366f1">
+            </div>
+
+            <button class="btn btn-reset" id="reset-settings">Сбросить настройки</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно -->
+    <div class="modal" id="bookmark-modal">
+        <div class="modal-content">
+            <h3 id="modal-date-title">Новая закладка</h3>
+            
+            <div class="form-group">
+                <label>Важность:</label>
+                <div class="priority-selector">
+                    <div class="priority-option high selected" data-value="high">Красный</div>
+                    <div class="priority-option medium" data-value="medium">Оранж.</div>
+                    <div class="priority-option low" data-value="low">Зеленый</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="send-date">Дата:</label>
+                <input type="date" id="send-date">
+            </div>
+
+            <div class="form-group">
+                <label for="bookmark-time">Время:</label>
+                <input type="time" id="bookmark-time" value="12:00">
+            </div>
+
+            <div class="form-group">
+                <label for="bookmark-text">Текст:</label>
+                <textarea id="bookmark-text" placeholder="Введите текст заметки..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="file-input">Файл:</label>
+                <input type="file" id="file-input">
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-cancel" id="close-modal">Отмена</button>
+                <button class="btn btn-submit" id="save-bookmark">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const BACKEND_URL = "https://botkalendar.onrender.com";
+
+            let currentDate = new Date();
+            let selectedDateStr = "";
+            let selectedPriority = "high";
+
+            const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+
+            const monthYearEl = document.getElementById("month-year");
+            const daysGridEl = document.getElementById("days-grid");
+            const prevMonthBtn = document.getElementById("prev-month");
+            const nextMonthBtn = document.getElementById("next-month");
+            
+            const modal = document.getElementById("bookmark-modal");
+            const modalTitle = document.getElementById("modal-date-title");
+            const closeModalBtn = document.getElementById("close-modal");
+            const saveBookmarkBtn = document.getElementById("save-bookmark");
+            
+            const sendDateInput = document.getElementById("send-date");
+            const timeInput = document.getElementById("bookmark-time");
+            const textInput = document.getElementById("bookmark-text");
+            const fileInput = document.getElementById("file-input");
+
+            const bgFileInput = document.getElementById("bg-file-input");
+            const bgMedia = document.getElementById("bg-media");
+            const bgOverlay = document.getElementById("bg-overlay");
+            const overlayRange = document.getElementById("overlay-range");
+            const overlayVal = document.getElementById("overlay-val");
+            const radiusRange = document.getElementById("radius-range");
+            const radiusVal = document.getElementById("radius-val");
+            const accentColorPicker = document.getElementById("accent-color-picker");
+            const resetSettingsBtn = document.getElementById("reset-settings");
+
+            function loadSavedSettings() {
+                const savedOverlay = localStorage.getItem("app_overlay");
+                if (savedOverlay !== null && overlayRange) {
+                    overlayRange.value = savedOverlay;
+                    if (overlayVal) overlayVal.textContent = savedOverlay;
+                    if (bgOverlay) bgOverlay.style.backgroundColor = `rgba(0, 0, 0, ${savedOverlay})`;
+                }
+
+                const savedRadius = localStorage.getItem("app_radius");
+                if (savedRadius !== null && radiusRange) {
+                    radiusRange.value = savedRadius;
+                    if (radiusVal) radiusVal.textContent = savedRadius;
+                    document.documentElement.style.setProperty('--border-radius', `${savedRadius}px`);
+                }
+
+                const savedAccent = localStorage.getItem("app_accent");
+                if (savedAccent !== null && accentColorPicker) {
+                    accentColorPicker.value = savedAccent;
+                    document.documentElement.style.setProperty('--accent-color', savedAccent);
+                }
+
+                const savedBgType = localStorage.getItem("app_bg_type");
+                const savedBgData = localStorage.getItem("app_bg_data");
+
+                if (savedBgType && savedBgData) {
+                    applyBackground(savedBgType, savedBgData);
+                }
+            }
+
+            function applyBackground(type, url) {
+                if (!bgMedia) return;
+                if (type.startsWith("video/")) {
+                    bgMedia.style.display = "block";
+                    document.body.style.backgroundImage = "none";
+                    bgMedia.src = url;
+                    bgMedia.load();
+                    bgMedia.play().catch(err => console.log("Автозапуск:", err));
+                } else if (type.startsWith("image/")) {
+                    bgMedia.style.display = "none";
+                    bgMedia.src = "";
+                    document.body.style.backgroundImage = `url('${url}')`;
+                }
+            }
+
+            if (bgFileInput) {
+                bgFileInput.addEventListener("change", (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    if (navigator.storage && navigator.storage.persist) {
+                        navigator.storage.persist().catch(err => console.log(err));
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const base64Data = event.target.result;
+                        localStorage.setItem("app_bg_type", file.type);
+                        localStorage.setItem("app_bg_data", base64Data);
+                        applyBackground(file.type, base64Data);
+                    };
+                    reader.readAsDataURL(file);
                 });
             }
 
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const base64Data = event.target.result;
-                
-                // Сохраняем в постоянный localStorage
-                localStorage.setItem("app_bg_type", file.type);
-                localStorage.setItem("app_bg_data", base64Data);
-
-                applyBackground(file.type, base64Data);
-            };
-            reader.readAsDataURL(file);
-        });
-
-        document.querySelectorAll('.priority-option').forEach(option => {
-            option.addEventListener('click', () => {
-                document.querySelectorAll('.priority-option').forEach(o => o.classList.remove('selected'));
-                option.classList.add('selected');
-                selectedPriority = option.getAttribute('data-value');
+            document.querySelectorAll('.priority-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    document.querySelectorAll('.priority-option').forEach(o => o.classList.remove('selected'));
+                    option.classList.add('selected');
+                    selectedPriority = option.getAttribute('data-value');
+                });
             });
-        });
 
-        function renderCalendar() {
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
+            function renderCalendar() {
+                if (!daysGridEl || !monthYearEl) return;
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth();
 
-            monthYearEl.textContent = `${monthNames[month]} ${year}`;
-            daysGridEl.innerHTML = "";
+                monthYearEl.textContent = `${monthNames[month]} ${year}`;
+                daysGridEl.innerHTML = "";
 
-            let firstDayIndex = new Date(year, month, 1).getDay();
-            firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+                let firstDayIndex = new Date(year, month, 1).getDay();
+                firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
 
-            const totalDays = new Date(year, month + 1, 0).getDate();
+                const totalDays = new Date(year, month + 1, 0).getDate();
 
-            for (let i = 0; i < firstDayIndex; i++) {
-                const emptyCell = document.createElement("div");
-                emptyCell.classList.add("day-cell", "empty");
-                daysGridEl.appendChild(emptyCell);
-            }
-
-            const today = new Date();
-            for (let day = 1; day <= totalDays; day++) {
-                const cell = document.createElement("div");
-                cell.classList.add("day-cell");
-                cell.textContent = day;
-
-                const formattedMonth = String(month + 1).padStart(2, '0');
-                const formattedDay = String(day).padStart(2, '0');
-                const dateStr = `${year}-${formattedMonth}-${formattedDay}`;
-
-                if (
-                    day === today.getDate() &&
-                    month === today.getMonth() &&
-                    year === today.getFullYear()
-                ) {
-                    cell.classList.add("today");
+                for (let i = 0; i < firstDayIndex; i++) {
+                    const emptyCell = document.createElement("div");
+                    emptyCell.classList.add("day-cell", "empty");
+                    daysGridEl.appendChild(emptyCell);
                 }
 
-                cell.addEventListener("click", () => {
-                    selectedDateStr = dateStr;
-                    modalTitle.textContent = `Заметка на ${formattedDay}.${formattedMonth}.${year}`;
-                    sendDateInput.value = dateStr;
-                    textInput.value = "";
-                    fileInput.value = "";
-                    modal.classList.add("active");
+                const today = new Date();
+                for (let day = 1; day <= totalDays; day++) {
+                    const cell = document.createElement("div");
+                    cell.classList.add("day-cell");
+                    cell.textContent = day;
+
+                    const formattedMonth = String(month + 1).padStart(2, '0');
+                    const formattedDay = String(day).padStart(2, '0');
+                    const dateStr = `${year}-${formattedMonth}-${formattedDay}`;
+
+                    if (
+                        day === today.getDate() &&
+                        month === today.getMonth() &&
+                        year === today.getFullYear()
+                    ) {
+                        cell.classList.add("today");
+                    }
+
+                    cell.addEventListener("click", () => {
+                        selectedDateStr = dateStr;
+                        if (modalTitle) modalTitle.textContent = `Заметка на ${formattedDay}.${formattedMonth}.${year}`;
+                        if (sendDateInput) sendDateInput.value = dateStr;
+                        if (textInput) textInput.value = "";
+                        if (fileInput) fileInput.value = "";
+                        if (modal) modal.classList.add("active");
+                    });
+
+                    daysGridEl.appendChild(cell);
+                }
+            }
+
+            if (prevMonthBtn) {
+                prevMonthBtn.addEventListener("click", () => {
+                    currentDate.setMonth(currentDate.getMonth() - 1);
+                    renderCalendar();
                 });
-
-                daysGridEl.appendChild(cell);
-            }
-        }
-
-        prevMonthBtn.addEventListener("click", () => {
-            currentDate.setMonth(currentDate.getMonth() - 1);
-            renderCalendar();
-        });
-
-        nextMonthBtn.addEventListener("click", () => {
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            renderCalendar();
-        });
-
-        closeModalBtn.addEventListener("click", () => {
-            modal.classList.remove("active");
-        });
-
-        saveBookmarkBtn.addEventListener("click", async () => {
-            const textVal = textInput.value.trim();
-            const sendDateVal = sendDateInput.value;
-            const timeVal = timeInput.value;
-
-            if (!textVal) {
-                alert("Введите текст закладки!");
-                return;
             }
 
-            saveBookmarkBtn.textContent = "Сохранение...";
-            saveBookmarkBtn.disabled = true;
-
-            const formData = new FormData();
-            formData.append("date", selectedDateStr);
-            formData.append("time", timeVal);
-            formData.append("send_date", sendDateVal);
-            formData.append("priority", selectedPriority);
-            formData.append("text", textVal);
-
-            if (fileInput.files.length > 0) {
-                formData.append("file", fileInput.files[0]);
-            }
-
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/send-bookmark`, {
-                    method: "POST",
-                    body: formData
+            if (nextMonthBtn) {
+                nextMonthBtn.addEventListener("click", () => {
+                    currentDate.setMonth(currentDate.getMonth() + 1);
+                    renderCalendar();
                 });
+            }
 
-                const result = await response.json();
-                if (response.ok) {
-                    alert("Успешно сохранено!");
+            if (closeModalBtn && modal) {
+                closeModalBtn.addEventListener("click", () => {
                     modal.classList.remove("active");
-                } else {
-                    alert("Ошибка: " + (result.detail || "Не удалось отправить"));
-                }
-            } catch (error) {
-                alert("Ошибка сети.");
-                console.error(error);
-            } finally {
-                saveBookmarkBtn.textContent = "Сохранить";
-                saveBookmarkBtn.disabled = false;
+                });
             }
-        });
 
-        overlayRange.addEventListener("input", (e) => {
-            const val = e.target.value;
-            overlayVal.textContent = val;
-            bgOverlay.style.backgroundColor = `rgba(0, 0, 0, ${val})`;
-            localStorage.setItem("app_overlay", val);
-        });
+            if (saveBookmarkBtn) {
+                saveBookmarkBtn.addEventListener("click", async () => {
+                    const textVal = textInput ? textInput.value.trim() : "";
+                    const sendDateVal = sendDateInput ? sendDateInput.value : "";
+                    const timeVal = timeInput ? timeInput.value : "12:00";
 
-        radiusRange.addEventListener("input", (e) => {
-            const val = e.target.value;
-            radiusVal.textContent = val;
-            document.documentElement.style.setProperty('--border-radius', `${val}px`);
-            localStorage.setItem("app_radius", val);
-        });
+                    if (!textVal) {
+                        alert("Введите текст закладки!");
+                        return;
+                    }
 
-        accentColorPicker.addEventListener("input", (e) => {
-            const val = e.target.value;
-            document.documentElement.style.setProperty('--accent-color', val);
-            localStorage.setItem("app_accent", val);
-        });
+                    saveBookmarkBtn.textContent = "Сохранение...";
+                    saveBookmarkBtn.disabled = true;
 
-        resetSettingsBtn.addEventListener("click", () => {
-            if (confirm("Сбросить все настройки интерфейса и фон?")) {
-                localStorage.clear();
-                location.reload();
+                    const formData = new FormData();
+                    formData.append("date", selectedDateStr);
+                    formData.append("time", timeVal);
+                    formData.append("send_date", sendDateVal);
+                    formData.append("priority", selectedPriority);
+                    formData.append("text", textVal);
+
+                    if (fileInput && fileInput.files.length > 0) {
+                        formData.append("file", fileInput.files[0]);
+                    }
+
+                    try {
+                        const response = await fetch(`${BACKEND_URL}/api/send-bookmark`, {
+                            method: "POST",
+                            body: formData
+                        });
+
+                        const result = await response.json();
+                        if (response.ok) {
+                            alert("Успешно сохранено!");
+                            if (modal) modal.classList.remove("active");
+                        } else {
+                            alert("Ошибка: " + (result.detail || "Не удалось отправить"));
+                        }
+                    } catch (error) {
+                        alert("Ошибка сети.");
+                        console.error(error);
+                    } finally {
+                        saveBookmarkBtn.textContent = "Сохранить";
+                        saveBookmarkBtn.disabled = false;
+                    }
+                });
             }
-        });
 
-        // Инициализация при запуске
-        loadSavedSettings();
-        renderCalendar();
+            if (overlayRange) {
+                overlayRange.addEventListener("input", (e) => {
+                    const val = e.target.value;
+                    if (overlayVal) overlayVal.textContent = val;
+                    if (bgOverlay) bgOverlay.style.backgroundColor = `rgba(0, 0, 0, ${val})`;
+                    localStorage.setItem("app_overlay", val);
+                });
+            }
+
+            if (radiusRange) {
+                radiusRange.addEventListener("input", (e) => {
+                    const val = e.target.value;
+                    if (radiusVal) radiusVal.textContent = val;
+                    document.documentElement.style.setProperty('--border-radius', `${val}px`);
+                    localStorage.setItem("app_radius", val);
+                });
+            }
+
+            if (accentColorPicker) {
+                accentColorPicker.addEventListener("input", (e) => {
+                    const val = e.target.value;
+                    document.documentElement.style.setProperty('--accent-color', val);
+                    localStorage.setItem("app_accent", val);
+                });
+            }
+
+            if (resetSettingsBtn) {
+                resetSettingsBtn.addEventListener("click", () => {
+                    if (confirm("Сбросить все настройки интерфейса и фон?")) {
+                        localStorage.clear();
+                        location.reload();
+                    }
+                });
+            }
+
+            loadSavedSettings();
+            renderCalendar();
+        });
     </script>
+</body>
+</html>
