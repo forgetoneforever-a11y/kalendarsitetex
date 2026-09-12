@@ -437,9 +437,9 @@
         const accentColorPicker = document.getElementById("accent-color-picker");
         const resetSettingsBtn = document.getElementById("reset-settings");
 
-        // --- Работа с IndexedDB для тяжелых файлов (видео/фото без лимитов) ---
+        // --- IndexedDB ---
         let db;
-        const dbRequest = indexedDB.open("CalendarAppDB", 1);
+        const dbRequest = indexedDB.open("CalendarAppDB", 2);
 
         dbRequest.onupgradeneeded = function(e) {
             db = e.target.result;
@@ -464,7 +464,6 @@
             const tx = db.transaction("settings", "readonly");
             const store = tx.objectStore("settings");
 
-            // Обычные настройки
             store.get("overlay").onsuccess = (e) => {
                 const val = e.target.result;
                 if (val !== undefined) {
@@ -491,7 +490,6 @@
                 }
             };
 
-            // Большой фоновый файл (видео/фото)
             store.get("bg_file").onsuccess = (e) => {
                 const fileData = e.target.result;
                 if (fileData) {
@@ -506,6 +504,8 @@
                 bgMedia.style.display = "block";
                 document.body.style.backgroundImage = "none";
                 bgMedia.src = url;
+                bgMedia.load();
+                bgMedia.play().catch(err => console.log("Автозапуск видео заблокирован браузером:", err));
             } else if (type.startsWith("image/")) {
                 bgMedia.style.display = "none";
                 bgMedia.src = "";
@@ -630,7 +630,6 @@
             }
         });
 
-        // Загрузка тяжелого файла (видео/фото) в IndexedDB
         bgFileInput.addEventListener("change", (e) => {
             const file = e.target.files[0];
             if (!file) return;
