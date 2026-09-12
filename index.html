@@ -427,7 +427,6 @@
         const textInput = document.getElementById("bookmark-text");
         const fileInput = document.getElementById("file-input");
 
-        // Элементы настроек
         const bgFileInput = document.getElementById("bg-file-input");
         const bgMedia = document.getElementById("bg-media");
         const bgOverlay = document.getElementById("bg-overlay");
@@ -438,45 +437,79 @@
         const accentColorPicker = document.getElementById("accent-color-picker");
         const resetSettingsBtn = document.getElementById("reset-settings");
 
-        // Загрузка сохраненных настроек при старте
-        function loadSettings() {
-            const savedOverlay = localStorage.getItem("app_overlay");
-            const savedRadius = localStorage.getItem("app_radius");
-            const savedAccent = localStorage.getItem("app_accent");
-            const savedBgType = localStorage.getItem("app_bg_type");
-            const savedBgData = localStorage.getItem("app_bg_data");
+        // --- Работа с IndexedDB для тяжелых файлов (видео/фото без лимитов) ---
+        let db;
+        const dbRequest = indexedDB.open("CalendarAppDB", 1);
 
-            if (savedOverlay !== null) {
-                overlayRange.value = savedOverlay;
-                overlayVal.textContent = savedOverlay;
-                bgOverlay.style.backgroundColor = `rgba(0, 0, 0, ${savedOverlay})`;
+        dbRequest.onupgradeneeded = function(e) {
+            db = e.target.result;
+            if (!db.objectStoreNames.contains("settings")) {
+                db.createObjectStore("settings");
             }
+        };
 
-            if (savedRadius !== null) {
-                radiusRange.value = savedRadius;
-                radiusVal.textContent = savedRadius;
-                document.documentElement.style.setProperty('--border-radius', `${savedRadius}px`);
-            }
+        dbRequest.onsuccess = function(e) {
+            db = e.target.result;
+            loadSettingsFromDB();
+        };
 
-            if (savedAccent !== null) {
-                accentColorPicker.value = savedAccent;
-                document.documentElement.style.setProperty('--accent-color', savedAccent);
-            }
-
-            if (savedBgType && savedBgData) {
-                applyBackground(savedBgType, savedBgData);
-            }
+        function saveSettingToDB(key, value) {
+            if (!db) return;
+            const tx = db.transaction("settings", "readwrite");
+            tx.objectStore("settings").put(value, key);
         }
 
-        function applyBackground(type, data) {
-            if (type === "video") {
+        function loadSettingsFromDB() {
+            if (!db) return;
+            const tx = db.transaction("settings", "readonly");
+            const store = tx.objectStore("settings");
+
+            // Обычные настройки
+            store.get("overlay").onsuccess = (e) => {
+                const val = e.target.result;
+                if (val !== undefined) {
+                    overlayRange.value = val;
+                    overlayVal.textContent = val;
+                    bgOverlay.style.backgroundColor = `rgba(0, 0, 0, ${val})`;
+                }
+            };
+
+            store.get("radius").onsuccess = (e) => {
+                const val = e.target.result;
+                if (val !== undefined) {
+                    radiusRange.value = val;
+                    radiusVal.textContent = val;
+                    document.documentElement.style.setProperty('--border-radius', `${val}px`);
+                }
+            };
+
+            store.get("accent").onsuccess = (e) => {
+                const val = e.target.result;
+                if (val !== undefined) {
+                    accentColorPicker.value = val;
+                    document.documentElement.style.setProperty('--accent-color', val);
+                }
+            };
+
+            // Большой фоновый файл (видео/фото)
+            store.get("bg_file").onsuccess = (e) => {
+                const fileData = e.target.result;
+                if (fileData) {
+                    const fileURL = URL.createObjectURL(fileData);
+                    applyBackground(fileData.type, fileURL);
+                }
+            };
+        }
+
+        function applyBackground(type, url) {
+            if (type.startsWith("video/")) {
                 bgMedia.style.display = "block";
                 document.body.style.backgroundImage = "none";
-                bgMedia.src = data;
-            } else if (type === "image") {
+                bgMedia.src = url;
+            } else if (type.startsWith("image/")) {
                 bgMedia.style.display = "none";
                 bgMedia.src = "";
-                document.body.style.backgroundImage = `url('${data}')`;
+                document.body.style.backgroundImage = `url('${url}')`;
             }
         }
 
@@ -597,54 +630,44 @@
             }
         });
 
-        // Обработка загрузки фона с сохранением в localStorage
+        // Загрузка тяжелого файла (видео/фото) в IndexedDB
         bgFileInput.addEventListener("change", (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const base64Data = event.target.result;
-                const fileType = file.type.startsWith("video/") ? "video" : "image";
-
-                applyBackground(fileType, base64Data);
-
-                localStorage.setItem("app_bg_type", fileType);
-                localStorage.setItem("app_bg_data", base64Data);
-            };
-            reader.readAsDataURL(file);
+            const fileURL = URL.createObjectURL(file);
+            applyBackground(file.type, fileURL);
+            saveSettingToDB("bg_file", file);
         });
 
         overlayRange.addEventListener("input", (e) => {
             const val = e.target.value;
             overlayVal.textContent = val;
             bgOverlay.style.backgroundColor = `rgba(0, 0, 0, ${val})`;
-            localStorage.setItem("app_overlay", val);
+            saveSettingToDB("overlay", val);
         });
 
         radiusRange.addEventListener("input", (e) => {
             const val = e.target.value;
             radiusVal.textContent = val;
             document.documentElement.style.setProperty('--border-radius', `${val}px`);
-            localStorage.setItem("app_radius", val);
+            saveSettingToDB("radius", val);
         });
 
         accentColorPicker.addEventListener("input", (e) => {
             const val = e.target.value;
             document.documentElement.style.setProperty('--accent-color', val);
-            localStorage.setItem("app_accent", val);
+            saveSettingToDB("accent", val);
         });
 
-        // Сброс настроек
         resetSettingsBtn.addEventListener("click", () => {
             if (confirm("Сбросить все настройки интерфейса и фон?")) {
-                localStorage.clear();
-                location.reload();
+                const tx = db.transaction("settings", "readwrite");
+                tx.objectStore("settings").clear();
+                tx.oncomplete = () => location.reload();
             }
         });
 
-        // Инициализация при загрузке
-        loadSettings();
         renderCalendar();
     </script>
 </body>
