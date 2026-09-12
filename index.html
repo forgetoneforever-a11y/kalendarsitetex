@@ -31,6 +31,9 @@
             box-sizing: border-box;
             position: relative;
             overflow-x: hidden;
+            background-size: cover;
+            background-position: center;
+            background-color: #0b0f19;
         }
 
         /* Фоновое видео или картинка */
@@ -42,7 +45,7 @@
             height: 100%;
             object-fit: cover;
             z-index: -2;
-            background-color: #0b0f19;
+            display: none;
         }
 
         /* Затемнение фона */
@@ -288,6 +291,17 @@
             background-color: var(--accent-hover);
         }
 
+        .btn-reset {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            margin-top: 5px;
+        }
+        .btn-reset:hover {
+            background-color: rgba(239, 68, 68, 0.4);
+            color: white;
+        }
+
         /* Адаптивность для телефонов */
         @media (max-width: 800px) {
             .main-wrapper {
@@ -303,7 +317,7 @@
 <body>
 
     <!-- Фоновый элемент (картинка или видео) -->
-    <video id="bg-media" autoplay muted loop playsinline style="display: none;"></video>
+    <video id="bg-media" autoplay muted loop playsinline></video>
     <div id="bg-overlay"></div>
 
     <div class="main-wrapper">
@@ -330,12 +344,12 @@
             </div>
 
             <div class="form-group">
-                <label for="overlay-range">Затемнение фона:</label>
+                <label for="overlay-range">Затемнение фона: <span id="overlay-val">0.5</span></label>
                 <input type="range" id="overlay-range" min="0" max="0.9" step="0.05" value="0.5">
             </div>
 
             <div class="form-group">
-                <label for="radius-range">Скругление блоков:</label>
+                <label for="radius-range">Скругление блоков: <span id="radius-val">20</span>px</label>
                 <input type="range" id="radius-range" min="5" max="35" value="20">
             </div>
 
@@ -343,6 +357,8 @@
                 <label for="accent-color-picker">Цвет акцента:</label>
                 <input type="color" id="accent-color-picker" value="#6366f1">
             </div>
+
+            <button class="btn btn-reset" id="reset-settings">Сбросить настройки</button>
         </div>
     </div>
 
@@ -416,8 +432,53 @@
         const bgMedia = document.getElementById("bg-media");
         const bgOverlay = document.getElementById("bg-overlay");
         const overlayRange = document.getElementById("overlay-range");
+        const overlayVal = document.getElementById("overlay-val");
         const radiusRange = document.getElementById("radius-range");
+        const radiusVal = document.getElementById("radius-val");
         const accentColorPicker = document.getElementById("accent-color-picker");
+        const resetSettingsBtn = document.getElementById("reset-settings");
+
+        // Загрузка сохраненных настроек при старте
+        function loadSettings() {
+            const savedOverlay = localStorage.getItem("app_overlay");
+            const savedRadius = localStorage.getItem("app_radius");
+            const savedAccent = localStorage.getItem("app_accent");
+            const savedBgType = localStorage.getItem("app_bg_type");
+            const savedBgData = localStorage.getItem("app_bg_data");
+
+            if (savedOverlay !== null) {
+                overlayRange.value = savedOverlay;
+                overlayVal.textContent = savedOverlay;
+                bgOverlay.style.backgroundColor = `rgba(0, 0, 0, ${savedOverlay})`;
+            }
+
+            if (savedRadius !== null) {
+                radiusRange.value = savedRadius;
+                radiusVal.textContent = savedRadius;
+                document.documentElement.style.setProperty('--border-radius', `${savedRadius}px`);
+            }
+
+            if (savedAccent !== null) {
+                accentColorPicker.value = savedAccent;
+                document.documentElement.style.setProperty('--accent-color', savedAccent);
+            }
+
+            if (savedBgType && savedBgData) {
+                applyBackground(savedBgType, savedBgData);
+            }
+        }
+
+        function applyBackground(type, data) {
+            if (type === "video") {
+                bgMedia.style.display = "block";
+                document.body.style.backgroundImage = "none";
+                bgMedia.src = data;
+            } else if (type === "image") {
+                bgMedia.style.display = "none";
+                bgMedia.src = "";
+                document.body.style.backgroundImage = `url('${data}')`;
+            }
+        }
 
         document.querySelectorAll('.priority-option').forEach(option => {
             option.addEventListener('click', () => {
@@ -536,36 +597,54 @@
             }
         });
 
-        // Логика кастомизации из панели настроек
+        // Обработка загрузки фона с сохранением в localStorage
         bgFileInput.addEventListener("change", (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            const fileURL = URL.createObjectURL(file);
 
-            if (file.type.startsWith("video/")) {
-                bgMedia.style.display = "block";
-                document.body.style.backgroundImage = "none";
-                bgMedia.src = fileURL;
-            } else if (file.type.startsWith("image/")) {
-                bgMedia.style.display = "none";
-                document.body.style.backgroundImage = `url('${fileURL}')`;
-                document.body.style.backgroundSize = "cover";
-                document.body.style.backgroundPosition = "center";
-            }
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const base64Data = event.target.result;
+                const fileType = file.type.startsWith("video/") ? "video" : "image";
+
+                applyBackground(fileType, base64Data);
+
+                localStorage.setItem("app_bg_type", fileType);
+                localStorage.setItem("app_bg_data", base64Data);
+            };
+            reader.readAsDataURL(file);
         });
 
         overlayRange.addEventListener("input", (e) => {
-            bgOverlay.style.backgroundColor = `rgba(0, 0, 0, ${e.target.value})`;
+            const val = e.target.value;
+            overlayVal.textContent = val;
+            bgOverlay.style.backgroundColor = `rgba(0, 0, 0, ${val})`;
+            localStorage.setItem("app_overlay", val);
         });
 
         radiusRange.addEventListener("input", (e) => {
-            document.documentElement.style.setProperty('--border-radius', `${e.target.value}px`);
+            const val = e.target.value;
+            radiusVal.textContent = val;
+            document.documentElement.style.setProperty('--border-radius', `${val}px`);
+            localStorage.setItem("app_radius", val);
         });
 
         accentColorPicker.addEventListener("input", (e) => {
-            document.documentElement.style.setProperty('--accent-color', e.target.value);
+            const val = e.target.value;
+            document.documentElement.style.setProperty('--accent-color', val);
+            localStorage.setItem("app_accent", val);
         });
 
+        // Сброс настроек
+        resetSettingsBtn.addEventListener("click", () => {
+            if (confirm("Сбросить все настройки интерфейса и фон?")) {
+                localStorage.clear();
+                location.reload();
+            }
+        });
+
+        // Инициализация при загрузке
+        loadSettings();
         renderCalendar();
     </script>
 </body>
