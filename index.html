@@ -1,409 +1,4 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Универсальный календарь и органайзер</title>
-    <style>
-        :root {
-            --bg-color: rgba(11, 15, 25, 0.85);
-            --card-bg: rgba(17, 24, 39, 0.85);
-            --text-color: #f3f4f6;
-            --accent-color: #6366f1;
-            --accent-hover: #4f46e5;
-            --border-color: rgba(31, 41, 55, 0.8);
-            --border-radius: 20px;
-            
-            --priority-high: #ef4444;
-            --priority-medium: #f59e0b;
-            --priority-low: #10b981;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            box-sizing: border-box;
-            position: relative;
-            overflow-x: hidden;
-            background-size: cover;
-            background-position: center;
-            background-color: #0b0f19;
-        }
-
-        /* Фоновое видео или картинка */
-        #bg-media {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: -2;
-            display: none;
-        }
-
-        /* Затемнение фона */
-        #bg-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: -1;
-            transition: background 0.3s;
-        }
-
-        .main-wrapper {
-            display: flex;
-            gap: 24px;
-            width: 100%;
-            max-width: 900px;
-            box-sizing: border-box;
-        }
-
-        .calendar-container {
-            background-color: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border-radius: var(--border-radius);
-            padding: 24px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-            flex: 1;
-            border: 1px solid var(--border-color);
-            box-sizing: border-box;
-        }
-
-        /* Панель настроек справа */
-        .settings-panel {
-            background-color: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border-radius: var(--border-radius);
-            padding: 24px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-            width: 300px;
-            border: 1px solid var(--border-color);
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .settings-panel h3 {
-            margin: 0 0 10px 0;
-            font-size: 1.1rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 8px;
-        }
-
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .calendar-header h2 {
-            margin: 0;
-            font-size: 1.4rem;
-        }
-
-        .nav-btn {
-            background: var(--border-color);
-            border: none;
-            color: var(--text-color);
-            font-size: 1.1rem;
-            cursor: pointer;
-            padding: 8px 14px;
-            border-radius: 10px;
-            transition: background 0.2s;
-        }
-
-        .nav-btn:hover {
-            background-color: var(--accent-color);
-        }
-
-        .weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            text-align: center;
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #9ca3af;
-            margin-bottom: 10px;
-        }
-
-        .days-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-        }
-
-        .day-cell {
-            aspect-ratio: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background-color: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 1rem;
-            border: 1px solid var(--border-color);
-            user-select: none;
-            transition: all 0.2s;
-        }
-
-        .day-cell:hover {
-            border-color: var(--accent-color);
-            background-color: rgba(99, 102, 241, 0.1);
-        }
-
-        .day-cell.empty {
-            pointer-events: none;
-            background: none;
-            border: none;
-        }
-
-        .day-cell.today {
-            border-color: var(--accent-color);
-            background-color: rgba(99, 102, 241, 0.2);
-            font-weight: bold;
-        }
-
-        /* Модальное окно */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(6px);
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background-color: #111827;
-            padding: 24px;
-            border-radius: var(--border-radius);
-            width: 100%;
-            max-width: 420px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-            box-sizing: border-box;
-        }
-
-        .modal-content h3 {
-            margin-top: 0;
-            margin-bottom: 16px;
-            font-size: 1.2rem;
-        }
-
-        .form-group {
-            margin-bottom: 14px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 0.85rem;
-            color: #9ca3af;
-            margin-bottom: 6px;
-        }
-
-        .form-group input, .form-group textarea, .form-group select {
-            width: 100%;
-            padding: 10px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-            background-color: #0b0f19;
-            color: var(--text-color);
-            font-family: inherit;
-            box-sizing: border-box;
-            font-size: 0.95rem;
-        }
-
-        .form-group textarea {
-            resize: none;
-            height: 70px;
-        }
-
-        .priority-selector {
-            display: flex;
-            gap: 8px;
-        }
-
-        .priority-option {
-            flex: 1;
-            padding: 8px 4px;
-            text-align: center;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            font-weight: 600;
-            border: 1px solid var(--border-color);
-        }
-
-        .priority-option.high { color: var(--priority-high); }
-        .priority-option.medium { color: var(--priority-medium); }
-        .priority-option.low { color: var(--priority-low); }
-
-        .priority-option.selected.high { background-color: var(--priority-high); color: white; }
-        .priority-option.selected.medium { background-color: var(--priority-medium); color: white; }
-        .priority-option.selected.low { background-color: var(--priority-low); color: white; }
-
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 10px;
-            border-radius: 10px;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-
-        .btn-cancel {
-            background-color: var(--border-color);
-            color: #9ca3af;
-        }
-
-        .btn-submit {
-            background-color: var(--accent-color);
-            color: white;
-        }
-        
-        .btn-submit:hover {
-            background-color: var(--accent-hover);
-        }
-
-        .btn-reset {
-            background-color: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            margin-top: 5px;
-        }
-        .btn-reset:hover {
-            background-color: rgba(239, 68, 68, 0.4);
-            color: white;
-        }
-
-        /* Адаптивность для телефонов */
-        @media (max-width: 800px) {
-            .main-wrapper {
-                flex-direction: column;
-                align-items: center;
-            }
-            .settings-panel {
-                width: 100%;
-            }
-        }
-    </style>
-</head>
-<body>
-
-    <!-- Фоновый элемент (картинка или видео) -->
-    <video id="bg-media" autoplay muted loop playsinline></video>
-    <div id="bg-overlay"></div>
-
-    <div class="main-wrapper">
-        <!-- Блок календаря -->
-        <div class="calendar-container">
-            <div class="calendar-header">
-                <button class="nav-btn" id="prev-month">&#10094;</button>
-                <h2 id="month-year">Месяц Год</h2>
-                <button class="nav-btn" id="next-month">&#10095;</button>
-            </div>
-            <div class="weekdays">
-                <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
-            </div>
-            <div class="days-grid" id="days-grid"></div>
-        </div>
-
-        <!-- Панель настроек интерфейса -->
-        <div class="settings-panel">
-            <h3>Настройки интерфейса</h3>
-            
-            <div class="form-group">
-                <label for="bg-file-input">Загрузить фон (Фото / MP4):</label>
-                <input type="file" id="bg-file-input" accept="image/*,video/mp4">
-            </div>
-
-            <div class="form-group">
-                <label for="overlay-range">Затемнение фона: <span id="overlay-val">0.5</span></label>
-                <input type="range" id="overlay-range" min="0" max="0.9" step="0.05" value="0.5">
-            </div>
-
-            <div class="form-group">
-                <label for="radius-range">Скругление блоков: <span id="radius-val">20</span>px</label>
-                <input type="range" id="radius-range" min="5" max="35" value="20">
-            </div>
-
-            <div class="form-group">
-                <label for="accent-color-picker">Цвет акцента:</label>
-                <input type="color" id="accent-color-picker" value="#6366f1">
-            </div>
-
-            <button class="btn btn-reset" id="reset-settings">Сбросить настройки</button>
-        </div>
-    </div>
-
-    <!-- Модальное окно -->
-    <div class="modal" id="bookmark-modal">
-        <div class="modal-content">
-            <h3 id="modal-date-title">Новая закладка</h3>
-            
-            <div class="form-group">
-                <label>Важность:</label>
-                <div class="priority-selector">
-                    <div class="priority-option high selected" data-value="high">Красный</div>
-                    <div class="priority-option medium" data-value="medium">Оранж.</div>
-                    <div class="priority-option low" data-value="low">Зеленый</div>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="send-date">Дата:</label>
-                <input type="date" id="send-date">
-            </div>
-
-            <div class="form-group">
-                <label for="bookmark-time">Время:</label>
-                <input type="time" id="bookmark-time" value="12:00">
-            </div>
-
-            <div class="form-group">
-                <label for="bookmark-text">Текст:</label>
-                <textarea id="bookmark-text" placeholder="Введите текст заметки..."></textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="file-input">Файл:</label>
-                <input type="file" id="file-input">
-            </div>
-
-            <div class="modal-actions">
-                <button class="btn btn-cancel" id="close-modal">Отмена</button>
-                <button class="btn btn-submit" id="save-bookmark">Сохранить</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
+<script>
         const BACKEND_URL = "https://botkalendar.onrender.com";
 
         let currentDate = new Date();
@@ -437,66 +32,37 @@
         const accentColorPicker = document.getElementById("accent-color-picker");
         const resetSettingsBtn = document.getElementById("reset-settings");
 
-        // --- IndexedDB ---
-        let db;
-        const dbRequest = indexedDB.open("CalendarAppDB", 2);
-
-        dbRequest.onupgradeneeded = function(e) {
-            db = e.target.result;
-            if (!db.objectStoreNames.contains("settings")) {
-                db.createObjectStore("settings");
+        // --- Жесткое сохранение через Base64 и localStorage (обход сброса IndexedDB) ---
+        
+        function loadSavedSettings() {
+            // Загружаем настройки дизайна
+            const savedOverlay = localStorage.getItem("app_overlay");
+            if (savedOverlay !== null) {
+                overlayRange.value = savedOverlay;
+                overlayVal.textContent = savedOverlay;
+                bgOverlay.style.backgroundColor = `rgba(0, 0, 0, ${savedOverlay})`;
             }
-        };
 
-        dbRequest.onsuccess = function(e) {
-            db = e.target.result;
-            loadSettingsFromDB();
-        };
+            const savedRadius = localStorage.getItem("app_radius");
+            if (savedRadius !== null) {
+                radiusRange.value = savedRadius;
+                radiusVal.textContent = savedRadius;
+                document.documentElement.style.setProperty('--border-radius', `${savedRadius}px`);
+            }
 
-        function saveSettingToDB(key, value) {
-            if (!db) return;
-            const tx = db.transaction("settings", "readwrite");
-            tx.objectStore("settings").put(value, key);
-        }
+            const savedAccent = localStorage.getItem("app_accent");
+            if (savedAccent !== null) {
+                accentColorPicker.value = savedAccent;
+                document.documentElement.style.setProperty('--accent-color', savedAccent);
+            }
 
-        function loadSettingsFromDB() {
-            if (!db) return;
-            const tx = db.transaction("settings", "readonly");
-            const store = tx.objectStore("settings");
+            // Загружаем фоновое видео/картинку из localStorage
+            const savedBgType = localStorage.getItem("app_bg_type");
+            const savedBgData = localStorage.getItem("app_bg_data");
 
-            store.get("overlay").onsuccess = (e) => {
-                const val = e.target.result;
-                if (val !== undefined) {
-                    overlayRange.value = val;
-                    overlayVal.textContent = val;
-                    bgOverlay.style.backgroundColor = `rgba(0, 0, 0, ${val})`;
-                }
-            };
-
-            store.get("radius").onsuccess = (e) => {
-                const val = e.target.result;
-                if (val !== undefined) {
-                    radiusRange.value = val;
-                    radiusVal.textContent = val;
-                    document.documentElement.style.setProperty('--border-radius', `${val}px`);
-                }
-            };
-
-            store.get("accent").onsuccess = (e) => {
-                const val = e.target.result;
-                if (val !== undefined) {
-                    accentColorPicker.value = val;
-                    document.documentElement.style.setProperty('--accent-color', val);
-                }
-            };
-
-            store.get("bg_file").onsuccess = (e) => {
-                const fileData = e.target.result;
-                if (fileData) {
-                    const fileURL = URL.createObjectURL(fileData);
-                    applyBackground(fileData.type, fileURL);
-                }
-            };
+            if (savedBgType && savedBgData) {
+                applyBackground(savedBgType, savedBgData);
+            }
         }
 
         function applyBackground(type, url) {
@@ -505,13 +71,38 @@
                 document.body.style.backgroundImage = "none";
                 bgMedia.src = url;
                 bgMedia.load();
-                bgMedia.play().catch(err => console.log("Автозапуск видео заблокирован браузером:", err));
+                bgMedia.play().catch(err => console.log("Автозапуск:", err));
             } else if (type.startsWith("image/")) {
                 bgMedia.style.display = "none";
                 bgMedia.src = "";
                 document.body.style.backgroundImage = `url('${url}')`;
             }
         }
+
+        // Конвертируем файл в Base64, чтобы он не удалялся браузером
+        bgFileInput.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Просим браузер запросить постоянное хранилище (чтобы он не чистил файл сам)
+            if (navigator.storage && navigator.storage.persist) {
+                navigator.storage.persist().then(granted => {
+                    console.log("Постоянное хранилище:", granted);
+                });
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const base64Data = event.target.result;
+                
+                // Сохраняем в постоянный localStorage
+                localStorage.setItem("app_bg_type", file.type);
+                localStorage.setItem("app_bg_data", base64Data);
+
+                applyBackground(file.type, base64Data);
+            };
+            reader.readAsDataURL(file);
+        });
 
         document.querySelectorAll('.priority-option').forEach(option => {
             option.addEventListener('click', () => {
@@ -630,44 +221,34 @@
             }
         });
 
-        bgFileInput.addEventListener("change", (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const fileURL = URL.createObjectURL(file);
-            applyBackground(file.type, fileURL);
-            saveSettingToDB("bg_file", file);
-        });
-
         overlayRange.addEventListener("input", (e) => {
             const val = e.target.value;
             overlayVal.textContent = val;
             bgOverlay.style.backgroundColor = `rgba(0, 0, 0, ${val})`;
-            saveSettingToDB("overlay", val);
+            localStorage.setItem("app_overlay", val);
         });
 
         radiusRange.addEventListener("input", (e) => {
             const val = e.target.value;
             radiusVal.textContent = val;
             document.documentElement.style.setProperty('--border-radius', `${val}px`);
-            saveSettingToDB("radius", val);
+            localStorage.setItem("app_radius", val);
         });
 
         accentColorPicker.addEventListener("input", (e) => {
             const val = e.target.value;
             document.documentElement.style.setProperty('--accent-color', val);
-            saveSettingToDB("accent", val);
+            localStorage.setItem("app_accent", val);
         });
 
         resetSettingsBtn.addEventListener("click", () => {
             if (confirm("Сбросить все настройки интерфейса и фон?")) {
-                const tx = db.transaction("settings", "readwrite");
-                tx.objectStore("settings").clear();
-                tx.oncomplete = () => location.reload();
+                localStorage.clear();
+                location.reload();
             }
         });
 
+        // Инициализация при запуске
+        loadSavedSettings();
         renderCalendar();
     </script>
-</body>
-</html>
