@@ -60,54 +60,54 @@
             transition: background 0.3s;
         }
 
-        /* Главный контейнер (календарь стал крупнее и шире) */
+        /* Главный контейнер (сделан широким под твой макет) */
         .main-wrapper {
             position: relative;
             width: 100%;
-            max-width: 650px;
+            max-width: 900px;
             box-sizing: border-box;
         }
 
         .calendar-container {
+            position: relative;
             background-color: var(--card-bg);
             backdrop-filter: blur(12px);
             border-radius: var(--border-radius);
-            padding: 32px;
+            padding: 40px;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
             width: 100%;
             border: 1px solid var(--border-color);
             box-sizing: border-box;
         }
 
-        /* Кнопка-шестеренка для настроек */
+        /* Крупная иконка-шестеренка прямо в углу карточки */
         .settings-toggle-btn {
             position: absolute;
-            top: -55px;
-            right: 0;
-            background-color: var(--card-bg);
-            backdrop-filter: blur(12px);
+            top: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border-color);
             color: var(--text-color);
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
             transition: all 0.2s;
             z-index: 5;
         }
 
         .settings-toggle-btn:hover {
             border-color: var(--accent-color);
+            background-color: rgba(99, 102, 241, 0.15);
             transform: scale(1.05);
         }
 
         .settings-toggle-btn svg {
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             fill: currentColor;
             transition: transform 0.4s ease;
         }
@@ -120,14 +120,14 @@
         .settings-panel {
             display: none;
             position: absolute;
-            top: 0;
-            right: 0;
-            background-color: var(--card-bg);
+            top: 75px;
+            right: 20px;
+            background-color: #111827;
             backdrop-filter: blur(16px);
             border-radius: var(--border-radius);
             padding: 24px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
-            width: 280px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+            width: 300px;
             border: 1px solid var(--border-color);
             box-sizing: border-box;
             flex-direction: column;
@@ -156,12 +156,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
+            margin-bottom: 30px;
+            padding-right: 60px; /* Чтобы заголовок не задевал шестеренку */
         }
 
         .calendar-header h2 {
             margin: 0;
-            font-size: 1.6rem;
+            font-size: 1.8rem;
         }
 
         .nav-btn {
@@ -170,7 +171,7 @@
             color: var(--text-color);
             font-size: 1.2rem;
             cursor: pointer;
-            padding: 10px 16px;
+            padding: 12px 18px;
             border-radius: 12px;
             transition: background 0.2s;
         }
@@ -184,19 +185,19 @@
             grid-template-columns: repeat(7, 1fr);
             text-align: center;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 1.1rem;
             color: #9ca3af;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
         }
 
         .days-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 12px;
+            gap: 14px;
         }
 
         .day-cell {
-            aspect-ratio: 1;
+            aspect-ratio: 1.2; /* Делает ячейки слегка вытянутыми под широкий формат */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -204,7 +205,7 @@
             background-color: rgba(255, 255, 255, 0.03);
             border-radius: 14px;
             cursor: pointer;
-            font-size: 1.15rem;
+            font-size: 1.25rem;
             border: 1px solid var(--border-color);
             user-select: none;
             transition: all 0.2s;
@@ -361,42 +362,42 @@
     <div id="bg-overlay"></div>
 
     <div class="main-wrapper">
-        <!-- Кнопка настроек в виде иконки-шестеренки -->
-        <button class="settings-toggle-btn" id="settings-toggle" title="Настройки интерфейса">
-            <svg viewBox="0 0 24 24">
-                <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.3L5.24,5.34c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.88 c-0.11,0.2-0.06,0.47,0.12,0.61l2.03,1.58c-0.05,0.3-0.09,0.63-0.09,0.94s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
-            </svg>
-        </button>
-
-        <!-- Выпадающая панель настроек -->
-        <div class="settings-panel" id="settings-panel">
-            <h3>Настройки интерфейса</h3>
-            
-            <div class="form-group">
-                <label for="bg-file-input">Загрузить фон (Фото / MP4):</label>
-                <input type="file" id="bg-file-input" accept="image/*,video/mp4">
-            </div>
-
-            <div class="form-group">
-                <label for="overlay-range">Затемнение фона: <span id="overlay-val">0.5</span></label>
-                <input type="range" id="overlay-range" min="0" max="0.9" step="0.05" value="0.5">
-            </div>
-
-            <div class="form-group">
-                <label for="radius-range">Скругление блоков: <span id="radius-val">24</span>px</label>
-                <input type="range" id="radius-range" min="5" max="35" value="24">
-            </div>
-
-            <div class="form-group">
-                <label for="accent-color-picker">Цвет акцента:</label>
-                <input type="color" id="accent-color-picker" value="#6366f1">
-            </div>
-
-            <button class="btn btn-reset" id="reset-settings">Сбросить настройки</button>
-        </div>
-
-        <!-- Крупный блок календаря -->
+        <!-- Широкий блок календаря -->
         <div class="calendar-container">
+            <!-- Крупная кнопка настроек в самом верхнем правом углу карточки -->
+            <button class="settings-toggle-btn" id="settings-toggle" title="Настройки интерфейса">
+                <svg viewBox="0 0 24 24">
+                    <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.3L5.24,5.34c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.88 c-0.11,0.2-0.06,0.47,0.12,0.61l2.03,1.58c-0.05,0.3-0.09,0.63-0.09,0.94s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+                </svg>
+            </button>
+
+            <!-- Выпадающая панель настроек -->
+            <div class="settings-panel" id="settings-panel">
+                <h3>Настройки интерфейса</h3>
+                
+                <div class="form-group">
+                    <label for="bg-file-input">Загрузить фон (Фото / MP4):</label>
+                    <input type="file" id="bg-file-input" accept="image/*,video/mp4">
+                </div>
+
+                <div class="form-group">
+                    <label for="overlay-range">Затемнение фона: <span id="overlay-val">0.5</span></label>
+                    <input type="range" id="overlay-range" min="0" max="0.9" step="0.05" value="0.5">
+                </div>
+
+                <div class="form-group">
+                    <label for="radius-range">Скругление блоков: <span id="radius-val">24</span>px</label>
+                    <input type="range" id="radius-range" min="5" max="35" value="24">
+                </div>
+
+                <div class="form-group">
+                    <label for="accent-color-picker">Цвет акцента:</label>
+                    <input type="color" id="accent-color-picker" value="#6366f1">
+                </div>
+
+                <button class="btn btn-reset" id="reset-settings">Сбросить настройки</button>
+            </div>
+
             <div class="calendar-header">
                 <button class="nav-btn" id="prev-month">&#10094;</button>
                 <h2 id="month-year">Месяц Год</h2>
