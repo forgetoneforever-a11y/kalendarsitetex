@@ -13,7 +13,6 @@
         body.font-neon { font-family: 'Courier New', Courier, monospace; letter-spacing: 0.5px; }
         body.font-retro { font-family: 'Lucida Console', Monaco, monospace; text-transform: uppercase; font-size: 0.9rem; }
 
-        /* Динамическое свечение карточки расписания */
         body.glow-enabled.glow-blue .card-glass {
             border-color: rgba(96, 165, 250, 0.5);
             box-shadow: 0 0 25px rgba(59, 130, 246, 0.35), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
@@ -38,9 +37,8 @@
 </head>
 <body>
 
-    <!-- Динамический контейнер фона -->
     <div id="bgContainer" style="position: fixed; inset: 0; z-index: -2; overflow: hidden;"></div>
-    <div class="video-overlay" style="position: fixed; inset: 0; z-index: -1; background: rgba(11, 15, 25, 0.85);"></div>
+    <div id="videoOverlay" style="position: fixed; inset: 0; z-index: -1; background: rgba(11, 15, 25, 0.85);"></div>
 
     <header class="site-header">
         <div class="header-container">
@@ -88,7 +86,12 @@
     </main>
 
     <script>
-        // Применение стилей шрифта и свечения
+        // Применение затемнения, размытия и шрифта сразу
+        const savedOpacity = localStorage.getItem('appBgOpacity') ?? '0.85';
+        const savedBlur = localStorage.getItem('appBgBlur') || '0';
+        document.getElementById('videoOverlay').style.background = `rgba(11, 15, 25, ${savedOpacity})`;
+        document.getElementById('bgContainer').style.filter = `blur(${savedBlur}px)`;
+
         const savedFont = localStorage.getItem('appFontStyle') || 'modern';
         const savedGlow = localStorage.getItem('appGlow') === 'true';
         const savedGlowColor = localStorage.getItem('appGlowColor') || 'blue';
@@ -107,7 +110,6 @@
             document.documentElement.style.setProperty('--custom-glow-shadow', `rgba(${r}, ${g}, ${b}, 0.35)`);
         }
 
-        // Отрисовка фона из базы данных IndexedDB
         const bgContainer = document.getElementById('bgContainer');
         function renderBackground(dataUrl, fileType = '') {
             bgContainer.innerHTML = '';
@@ -119,12 +121,12 @@
                     video.autoplay = true;
                     video.muted = true;
                     video.loop = true;
-                    video.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+                    video.style.cssText = 'width: 100%; height: 100%; object-fit: cover; transform: scale(1.02);';
                     bgContainer.appendChild(video);
                 } else {
                     const img = document.createElement('img');
                     img.src = dataUrl;
-                    img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+                    img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; transform: scale(1.02);';
                     bgContainer.appendChild(img);
                 }
             } else {
@@ -133,7 +135,7 @@
                 video.autoplay = true;
                 video.muted = true;
                 video.loop = true;
-                video.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+                video.style.cssText = 'width: 100%; height: 100%; object-fit: cover; transform: scale(1.02);';
                 bgContainer.appendChild(video);
             }
         }
