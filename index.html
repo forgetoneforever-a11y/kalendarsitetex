@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Расписание — Органайзер</title>
+    <title>Расписание — Texnikum work</title>
     
     <link rel="stylesheet" href="./css/variables.css">
     <link rel="stylesheet" href="./css/global.css">
@@ -13,28 +13,79 @@
         body.font-neon { font-family: 'Courier New', Courier, monospace; letter-spacing: 0.5px; }
         body.font-retro { font-family: 'Lucida Console', Monaco, monospace; text-transform: uppercase; font-size: 0.9rem; }
 
-        body.glow-enabled.glow-blue .card-glass,
-        body.glow-enabled.glow-blue .schedule-day-card {
+        /* Стильная полупрозрачная шапка */
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(15, 23, 42, 0.45) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 14px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #f8fafc;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.3px;
+        }
+        .nav-menu { display: flex; gap: 8px; }
+        .nav-menu a {
+            color: #94a3b8;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .nav-menu a:hover { color: #fff; background: rgba(255, 255, 255, 0.06); }
+        .nav-menu a.active {
+            color: #fff;
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Применение динамического размытия панелей */
+        .card-glass, .schedule-day-card {
+            background: rgba(15, 23, 42, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            backdrop-filter: blur(var(--card-blur, 10px));
+            -webkit-backdrop-filter: blur(var(--card-blur, 10px));
+        }
+
+        body.glow-enabled.glow-blue .card-glass, body.glow-enabled.glow-blue .schedule-day-card {
             border-color: rgba(96, 165, 250, 0.5);
             box-shadow: 0 0 25px rgba(59, 130, 246, 0.35), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
-        body.glow-enabled.glow-purple .card-glass,
-        body.glow-enabled.glow-purple .schedule-day-card {
+        body.glow-enabled.glow-purple .card-glass, body.glow-enabled.glow-purple .schedule-day-card {
             border-color: rgba(192, 132, 252, 0.5);
             box-shadow: 0 0 25px rgba(168, 85, 247, 0.35), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
-        body.glow-enabled.glow-green .card-glass,
-        body.glow-enabled.glow-green .schedule-day-card {
+        body.glow-enabled.glow-green .card-glass, body.glow-enabled.glow-green .schedule-day-card {
             border-color: rgba(74, 222, 128, 0.5);
             box-shadow: 0 0 25px rgba(34, 197, 94, 0.35), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
-        body.glow-enabled.glow-pink .card-glass,
-        body.glow-enabled.glow-pink .schedule-day-card {
+        body.glow-enabled.glow-pink .card-glass, body.glow-enabled.glow-pink .schedule-day-card {
             border-color: rgba(244, 114, 182, 0.5);
             box-shadow: 0 0 25px rgba(236, 72, 153, 0.35), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
-        body.glow-enabled.glow-custom .card-glass,
-        body.glow-enabled.glow-custom .schedule-day-card {
+        body.glow-enabled.glow-custom .card-glass, body.glow-enabled.glow-custom .schedule-day-card {
             border-color: var(--custom-glow-border, rgba(59, 130, 246, 0.5));
             box-shadow: 0 0 25px var(--custom-glow-shadow, rgba(59, 130, 246, 0.35)), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
@@ -60,23 +111,16 @@
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
             transition: all 0.2s;
         }
-        .add-subject-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
-        }
+        .add-subject-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4); }
 
-        /* Сетка карточек по дням в строчку */
+        /* Карточки дней в строчку */
         .schedule-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 20px;
         }
         .schedule-day-card {
-            background: rgba(15, 23, 42, 0.55);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 14px;
             padding: 20px;
-            backdrop-filter: blur(10px);
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -87,9 +131,6 @@
             color: #60a5fa;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             padding-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
         .lesson-item {
             background: rgba(15, 23, 42, 0.75);
@@ -101,19 +142,9 @@
             gap: 4px;
             position: relative;
         }
-        .lesson-time {
-            font-size: 0.8rem;
-            color: #94a3b8;
-        }
-        .lesson-name {
-            font-size: 0.95rem;
-            color: #fff;
-            font-weight: 500;
-        }
-        .lesson-room {
-            font-size: 0.8rem;
-            color: #38bdf8;
-        }
+        .lesson-time { font-size: 0.8rem; color: #94a3b8; }
+        .lesson-name { font-size: 0.95rem; color: #fff; font-weight: 500; }
+        .lesson-room { font-size: 0.8rem; color: #38bdf8; }
         .lesson-delete-btn {
             position: absolute;
             top: 10px;
@@ -125,100 +156,31 @@
             font-size: 0.85rem;
             transition: color 0.2s;
         }
-        .lesson-delete-btn:hover {
-            color: #ef4444;
-        }
-        .no-lessons {
-            font-size: 0.85rem;
-            color: #64748b;
-            font-style: italic;
-            text-align: center;
-            padding: 10px 0;
-        }
+        .lesson-delete-btn:hover { color: #ef4444; }
+        .no-lessons { font-size: 0.85rem; color: #64748b; font-style: italic; text-align: center; padding: 10px 0; }
 
         /* Модальное окно */
         .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(11, 15, 25, 0.75);
-            backdrop-filter: blur(8px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            opacity: 0;
-            transition: opacity 0.2s ease;
+            position: fixed; inset: 0; background: rgba(11, 15, 25, 0.75);
+            backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 100; opacity: 0; transition: opacity 0.2s ease;
         }
-        .modal-overlay.active {
-            display: flex;
-            opacity: 1;
-        }
+        .modal-overlay.active { display: flex; opacity: 1; }
         .modal-card {
-            background: rgba(15, 23, 42, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            padding: 30px;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 450px;
+            background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 30px; border-radius: 16px; width: 100%; max-width: 450px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
-            transform: scale(0.95);
-            transition: transform 0.2s ease;
         }
-        .modal-overlay.active .modal-card {
-            transform: scale(1);
-        }
-        .modal-title {
-            font-size: 1.3rem;
-            color: #fff;
-            margin-bottom: 20px;
-        }
-        .modal-field {
-            margin-bottom: 15px;
-        }
-        .modal-field label {
-            display: block;
-            font-size: 0.85rem;
-            color: #94a3b8;
-            margin-bottom: 6px;
-        }
+        .modal-title { font-size: 1.3rem; color: #fff; margin-bottom: 20px; }
+        .modal-field { margin-bottom: 15px; }
+        .modal-field label { display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px; }
         .modal-input, .modal-select {
-            width: 100%;
-            background: rgba(15, 23, 42, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #fff;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            outline: none;
+            width: 100%; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff; padding: 12px; border-radius: 8px; font-size: 0.95rem; outline: none;
         }
-        .modal-input:focus, .modal-select:focus {
-            border-color: #60a5fa;
-        }
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 25px;
-        }
-        .modal-btn-save {
-            flex: 1;
-            background: #3b82f6;
-            color: #fff;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .modal-btn-cancel {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.05);
-            color: #cbd5e1;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-        }
+        .modal-input:focus, .modal-select:focus { border-color: #60a5fa; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 25px; }
+        .modal-btn-save { flex: 1; background: #3b82f6; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .modal-btn-cancel { flex: 1; background: rgba(255, 255, 255, 0.05); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
     </style>
     <script>
         const savedOpacity = localStorage.getItem('appBgOpacity') ?? '0.85';
@@ -253,7 +215,7 @@
 
     <header class="site-header">
         <div class="header-container">
-            <a href="calendar.html" class="logo">📅 Органайзер</a>
+            <a href="calendar.html" class="logo">💻 Texnikum work</a>
             <nav class="nav-menu">
                 <a href="calendar.html">Календарь и Заметки</a>
                 <a href="index.html" class="active">Расписание</a>
@@ -263,7 +225,7 @@
     </header>
 
     <main class="site-main">
-        <section class="card-glass" style="max-width: 1200px;">
+        <section class="card-glass" style="max-width: 1200px; padding: 28px;">
             <div class="schedule-header-row">
                 <div>
                     <h1>Расписание занятий</h1>
@@ -272,18 +234,14 @@
                 <button class="add-subject-btn" id="openModalBtn">➕ Добавить предмет</button>
             </div>
             
-            <!-- Контейнер сетки дней недели в строчку -->
-            <div class="schedule-grid" id="scheduleGridContainer">
-                <!-- Карточки дней генерируются динамически -->
-            </div>
+            <div class="schedule-grid" id="scheduleGridContainer"></div>
         </section>
     </main>
 
-    <!-- Модальное окно добавления предмета -->
+    <!-- Модальное окно -->
     <div class="modal-overlay" id="subjectModal">
         <div class="modal-card">
             <h3 class="modal-title">Добавить новую пару</h3>
-            
             <div class="modal-field">
                 <label>День недели:</label>
                 <select id="modalDay" class="modal-select">
@@ -295,22 +253,18 @@
                     <option value="Суббота">Суббота</option>
                 </select>
             </div>
-
             <div class="modal-field">
                 <label>Время проведения:</label>
                 <input type="text" id="modalTime" class="modal-input" placeholder="Напр. 08:30 - 10:00">
             </div>
-
             <div class="modal-field">
                 <label>Название предмета:</label>
                 <input type="text" id="modalSubject" class="modal-input" placeholder="Напр. Технология машиностроения">
             </div>
-
             <div class="modal-field">
                 <label>Аудитория:</label>
                 <input type="text" id="modalRoom" class="modal-input" placeholder="Напр. Ауд. 204">
             </div>
-
             <div class="modal-actions">
                 <button class="modal-btn-cancel" id="closeModalBtn">Отмена</button>
                 <button class="modal-btn-save" id="saveSubjectBtn">Добавить</button>
@@ -344,28 +298,18 @@
 
         openModalBtn.addEventListener('click', () => subjectModal.classList.add('active'));
         closeModalBtn.addEventListener('click', () => subjectModal.classList.remove('active'));
-        
-        subjectModal.addEventListener('click', (e) => {
-            if (e.target === subjectModal) subjectModal.classList.remove('active');
-        });
+        subjectModal.addEventListener('click', (e) => { if (e.target === subjectModal) subjectModal.classList.remove('active'); });
 
         const daysOfWeek = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"];
 
         function renderSchedule() {
             scheduleGridContainer.innerHTML = '';
-
             daysOfWeek.forEach(dayName => {
                 const card = document.createElement('div');
                 card.className = 'schedule-day-card';
+                card.innerHTML = `<div class="day-title">${dayName}</div>`;
 
-                const dayHeader = document.createElement('div');
-                dayHeader.className = 'day-title';
-                dayHeader.innerHTML = `<span>${dayName}</span>`;
-                card.appendChild(dayHeader);
-
-                // Фильтруем предметы для текущего дня
                 const dayLessons = scheduleData.filter(item => item.day === dayName);
-
                 if (dayLessons.length === 0) {
                     const emptyEl = document.createElement('div');
                     emptyEl.className = 'no-lessons';
@@ -373,21 +317,18 @@
                     card.appendChild(emptyEl);
                 } else {
                     dayLessons.forEach((lesson) => {
-                        // Находим реальный индекс предмета в глобальном массиве для удаления
                         const globalIndex = scheduleData.indexOf(lesson);
-
                         const lessonEl = document.createElement('div');
                         lessonEl.className = 'lesson-item';
                         lessonEl.innerHTML = `
                             <span class="lesson-time">⏰ ${lesson.time}</span>
                             <span class="lesson-name">${lesson.subject}</span>
                             <span class="lesson-room">📍 ${lesson.room}</span>
-                            <button class="lesson-delete-btn" onclick="deleteSubject(${globalIndex})" title="Удалить предмет">✕</button>
+                            <button class="lesson-delete-btn" onclick="deleteSubject(${globalIndex})" title="Удалить">✕</button>
                         `;
                         card.appendChild(lessonEl);
                     });
                 }
-
                 scheduleGridContainer.appendChild(card);
             });
         }
@@ -405,13 +346,12 @@
             const room = modalRoom.value.trim();
 
             if (!time || !subject) {
-                alert('Пожалуйста, укажите время и название предмета!');
+                alert('Укажите время и название предмета!');
                 return;
             }
 
             scheduleData.push({ day, time, subject, room: room || 'Не указана' });
             localStorage.setItem('userScheduleData', JSON.stringify(scheduleData));
-            
             renderSchedule();
             subjectModal.classList.remove('active');
 
