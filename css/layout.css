@@ -1,56 +1,192 @@
-/* Стили для страницы настроек и элементов формы */
-.settings-card {
+/* Общий контейнер */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 30px;
+    width: 100%;
+}
+
+/* Шапка сайта — фиксируем выравнивание */
+.site-header {
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 100%;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 80px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 30px;
+}
+
+.logo {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #ffffff;
+    text-decoration: none;
+    letter-spacing: -0.01em;
+}
+
+.nav-menu {
+    display: flex;
+    gap: 28px;
+}
+
+.nav-menu a {
+    color: #94a3b8;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.25s ease;
+    padding: 6px 12px;
+    border-radius: 8px;
+}
+
+.nav-menu a:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-menu a.active {
+    color: #60a5fa;
+    background: rgba(59, 130, 246, 0.12);
+}
+
+/* Основной контейнер страницы */
+.site-main {
+    padding: 50px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: calc(100vh - 80px);
+}
+
+/* Стеклянные карточки */
+.card-glass, .settings-card {
+    background: rgba(30, 41, 59, 0.5);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 45px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    width: 100%;
+    max-width: 1000px;
     display: flex;
     flex-direction: column;
     gap: 24px;
 }
 
-.setting-item {
+.card-glass h1, .settings-card h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+.subtitle {
+    color: #94a3b8;
+    margin-top: -12px;
+    font-size: 1.05rem;
+}
+
+/* Таблицы */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.shedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.shedule-table th, 
+.shedule-table td {
+    padding: 18px 20px;
+}
+
+.shedule-table thead tr {
+    background: rgba(15, 23, 42, 0.4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.shedule-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.shedule-table th {
+    font-weight: 600;
+    color: #60a5fa;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+.shedule-table td {
+    color: #e2e8f0;
+    font-size: 1rem;
+}
+
+/* Элементы форм, инпуты и кнопки */
+.setting-item, .notes-panel {
     display: flex;
     flex-direction: column;
     gap: 10px;
     width: 100%;
 }
 
-.setting-item label {
+.setting-item label, .notes-panel h3 {
     font-size: 0.95rem;
     font-weight: 500;
     color: #cbd5e1;
 }
 
-/* Текстовые инпуты */
-.setting-item input[type="text"] {
+input[type="text"], textarea {
     background: rgba(15, 23, 42, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 14px 16px;
     border-radius: 12px;
     color: #f8fafc;
-    font-family: monospace;
+    font-family: inherit;
     font-size: 0.95rem;
     width: 100%;
-    transition: all 0.2s ease;
 }
 
-.setting-item input[type="text"]:focus {
+input[type="text"]:focus, textarea:focus {
     outline: none;
     border-color: #60a5fa;
-    background: rgba(15, 23, 42, 0.8);
     box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
 }
 
-/* Красивое оформление для выбора файлов (заменяем убогую системную кнопку) */
-.setting-item input[type="file"] {
+textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+input[type="file"] {
     background: rgba(15, 23, 42, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 12px;
     border-radius: 12px;
     color: #94a3b8;
     width: 100%;
-    cursor: pointer;
-    font-size: 0.9rem;
 }
 
-.setting-item input[type="file"]::file-selector-button {
+input[type="file"]::file-selector-button {
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: #ffffff;
     border: none;
@@ -59,9 +195,23 @@
     font-weight: 600;
     cursor: pointer;
     margin-right: 12px;
-    transition: background 0.2s ease;
 }
 
-.setting-item input[type="file"]::file-selector-button:hover {
+.btn-accent {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: #ffffff;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    align-self: flex-start;
+    transition: all 0.2s ease;
+}
+
+.btn-accent:hover {
     background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    transform: translateY(-2px);
 }
