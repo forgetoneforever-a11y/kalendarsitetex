@@ -83,6 +83,64 @@
         .calendar-nav-btn:hover {
             background: rgba(255, 255, 255, 0.15);
         }
+
+        /* Дополнительные стили для времени и загрузки файлов */
+        .note-controls-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+        .time-input-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .time-input-wrap label {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+        .time-input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            width: 100%;
+        }
+        .file-upload-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            color: #cbd5e1;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            text-align: center;
+            justify-content: center;
+            flex: 1;
+        }
+        .file-upload-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #60a5fa;
+            color: #fff;
+        }
+        #mediaFile {
+            display: none;
+        }
+        .file-name-preview {
+            font-size: 0.8rem;
+            color: #60a5fa;
+            margin-bottom: 10px;
+            word-break: break-all;
+        }
     </style>
 </head>
 <body>
@@ -92,7 +150,6 @@
     </video>
     <div class="video-overlay"></div>
 
-    <!-- Навигация: Календарь теперь на первом месте -->
     <header class="site-header">
         <div class="header-container">
             <a href="calendar.html" class="logo">📅 Органайзер</a>
@@ -111,7 +168,7 @@
             
             <div class="calendar-grid-layout" style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 35px; align-items: start;">
                 
-                <!-- Увеличенный блок интерактивного календаря -->
+                <!-- Календарь -->
                 <div class="calendar-widget" style="background: rgba(15, 23, 42, 0.4); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.06);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h3 id="monthYearTitle" style="font-size: 1.25rem; color: #f8fafc;"></h3>
@@ -128,11 +185,30 @@
                     </div>
                 </div>
 
-                <!-- Блок заметок -->
+                <!-- Блок заметок с временем и медиа -->
                 <div class="notes-panel">
                     <h3 id="selectedDateTitle">Заметки на выбранный день</h3>
                     <div id="selectedDateDisplay" style="font-size: 0.9rem; color: #60a5fa; margin-bottom: 12px; font-weight: 500;">Дата не выбрана</div>
-                    <textarea id="noteInput" placeholder="Введите задачу или напоминание..." style="min-height: 160px;"></textarea>
+                    
+                    <!-- Выбор времени -->
+                    <div class="note-controls-row">
+                        <div class="time-input-wrap">
+                            <label for="timeInput">Время выполнения:</label>
+                            <input type="time" id="timeInput" class="time-input">
+                        </div>
+                    </div>
+
+                    <textarea id="noteInput" placeholder="Введите задачу или напоминание..." style="min-height: 130px; margin-bottom: 10px;"></textarea>
+                    
+                    <!-- Загрузка фото/медиа -->
+                    <div class="note-controls-row" style="margin-bottom: 6px;">
+                        <label for="mediaFile" class="file-upload-btn">
+                            📎 Прикрепить фото/медиа
+                        </label>
+                        <input type="file" id="mediaFile" accept="image/*,video/*">
+                    </div>
+                    <div id="fileNamePreview" class="file-name-preview">Файл не выбран</div>
+
                     <button class="btn-accent" id="sendNoteBtn">Сохранить и отправить в Telegram</button>
                 </div>
 
@@ -162,7 +238,22 @@
         const nextMonthBtn = document.getElementById('nextMonthBtn');
         const selectedDateDisplay = document.getElementById('selectedDateDisplay');
         const noteInput = document.getElementById('noteInput');
+        const timeInput = document.getElementById('timeInput');
+        const mediaFile = document.getElementById('mediaFile');
+        const fileNamePreview = document.getElementById('fileNamePreview');
         const sendNoteBtn = document.getElementById('sendNoteBtn');
+
+        // Установка текущего времени по умолчанию
+        const currentTimeString = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        timeInput.value = currentTimeString;
+
+        mediaFile.addEventListener('change', () => {
+            if (mediaFile.files.length > 0) {
+                fileNamePreview.textContent = `Выбран файл: ${mediaFile.files[0].name}`;
+            } else {
+                fileNamePreview.textContent = 'Файл не выбран';
+            }
+        });
 
         function renderCalendar() {
             const year = currentDate.getFullYear();
@@ -233,20 +324,26 @@
 
         sendNoteBtn.addEventListener('click', () => {
             const noteText = noteInput.value.trim();
-            if (!noteText) {
-                alert('Введите текст заметки!');
+            const taskTime = timeInput.value || 'Не указано';
+            const hasFile = mediaFile.files.length > 0;
+            const fileName = hasFile ? mediaFile.files[0].name : 'Нет';
+
+            if (!noteText && !hasFile) {
+                alert('Введите текст заметки или прикрепите файл!');
                 return;
             }
 
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
             const dateString = selectedDate.toLocaleDateString('ru-RU');
 
-            const fullMessage = `📅 Дата задачи: ${dateString}\n⏰ Время создания: ${timeString}\n📝 Текст: ${noteText}`;
+            const fullMessage = `📅 Дата задачи: ${dateString}\n⏰ Время: ${taskTime}\n📝 Текст: ${noteText || 'Без текста'}\n📎 Медиафайл: ${fileName}`;
             
             console.log("Отправка в Telegram:", fullMessage);
-            alert(`Заметка успешно сохранена на ${dateString} в ${timeString} и отправлена в Telegram!`);
+            alert(`Заметка на ${dateString} (${taskTime}) успешно сохранена и отправлена в Telegram!`);
+            
+            // Сброс формы
             noteInput.value = '';
+            mediaFile.value = '';
+            fileNamePreview.textContent = 'Файл не выбран';
         });
 
         updateSelectedDateText();
