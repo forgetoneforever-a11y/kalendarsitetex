@@ -9,12 +9,10 @@
     <link rel="stylesheet" href="./css/global.css">
     <link rel="stylesheet" href="./css/layout.css">
     <style>
-        /* Стили шрифтов */
         body.font-modern { font-family: system-ui, -apple-system, sans-serif; }
         body.font-neon { font-family: 'Courier New', Courier, monospace; letter-spacing: 0.5px; }
         body.font-retro { font-family: 'Lucida Console', Monaco, monospace; text-transform: uppercase; font-size: 0.9rem; }
 
-        /* Динамическое свечение по цветам */
         body.glow-enabled.glow-blue .card-glass, 
         body.glow-enabled.glow-blue .settings-card, 
         body.glow-enabled.glow-blue .calendar-widget {
@@ -40,7 +38,6 @@
             box-shadow: 0 0 25px rgba(236, 72, 153, 0.35), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
 
-        /* Увеличенный календарь */
         .calendar-widget {
             padding: 28px !important;
         }
@@ -84,7 +81,6 @@
             background: rgba(255, 255, 255, 0.15);
         }
 
-        /* Дополнительные стили для времени и загрузки файлов */
         .note-controls-row {
             display: flex;
             gap: 12px;
@@ -168,7 +164,6 @@
             
             <div class="calendar-grid-layout" style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 35px; align-items: start;">
                 
-                <!-- Календарь -->
                 <div class="calendar-widget" style="background: rgba(15, 23, 42, 0.4); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.06);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h3 id="monthYearTitle" style="font-size: 1.25rem; color: #f8fafc;"></h3>
@@ -180,17 +175,13 @@
                     <div style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; gap: 8px; font-size: 0.95rem; color: #94a3b8; margin-bottom: 12px;">
                         <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
                     </div>
-                    <div id="calendarDaysGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;">
-                        <!-- Дни генерируются через JS -->
-                    </div>
+                    <div id="calendarDaysGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;"></div>
                 </div>
 
-                <!-- Блок заметок с временем и медиа -->
                 <div class="notes-panel">
                     <h3 id="selectedDateTitle">Заметки на выбранный день</h3>
                     <div id="selectedDateDisplay" style="font-size: 0.9rem; color: #60a5fa; margin-bottom: 12px; font-weight: 500;">Дата не выбрана</div>
                     
-                    <!-- Выбор времени -->
                     <div class="note-controls-row">
                         <div class="time-input-wrap">
                             <label for="timeInput">Время выполнения:</label>
@@ -200,7 +191,6 @@
 
                     <textarea id="noteInput" placeholder="Введите задачу или напоминание..." style="min-height: 130px; margin-bottom: 10px;"></textarea>
                     
-                    <!-- Загрузка фото/медиа -->
                     <div class="note-controls-row" style="margin-bottom: 6px;">
                         <label for="mediaFile" class="file-upload-btn">
                             📎 Прикрепить фото/медиа
@@ -220,16 +210,23 @@
         const savedFont = localStorage.getItem('appFontStyle') || 'modern';
         const savedGlow = localStorage.getItem('appGlow') === 'true';
         const savedGlowColor = localStorage.getItem('appGlowColor') || 'blue';
+        const savedCustomColor = localStorage.getItem('appCustomGlowColor') || '#3b82f6';
 
         document.body.classList.add(`font-${savedFont}`);
-        if (savedGlow) {
+        if (savedGlow && savedGlowColor !== 'none') {
             document.body.classList.add('glow-enabled');
-            document.body.classList.add(`glow-${savedGlowColor}`);
+            if (savedGlowColor === 'custom') {
+                document.querySelectorAll('.card-glass, .settings-card, .calendar-widget').forEach(el => {
+                    el.style.borderColor = savedCustomColor;
+                    el.style.boxShadow = `0 0 25px ${savedCustomColor}66, 0 20px 50px rgba(0, 0, 0, 0.4)`;
+                });
+            } else {
+                document.body.classList.add(`glow-${savedGlowColor}`);
+            }
         }
 
         let currentDate = new Date();
         let selectedDate = new Date();
-
         const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
 
         const monthYearTitle = document.getElementById('monthYearTitle');
@@ -243,9 +240,7 @@
         const fileNamePreview = document.getElementById('fileNamePreview');
         const sendNoteBtn = document.getElementById('sendNoteBtn');
 
-        // Установка текущего времени по умолчанию
-        const currentTimeString = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-        timeInput.value = currentTimeString;
+        timeInput.value = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 
         mediaFile.addEventListener('change', () => {
             if (mediaFile.files.length > 0) {
@@ -258,14 +253,12 @@
         function renderCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
-
             monthYearTitle.textContent = `${monthNames[month]} ${year}`;
             calendarDaysGrid.innerHTML = '';
 
             const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7;
             const lastDay = new Date(year, month + 1, 0).getDate();
             const prevLastDay = new Date(year, month, 0).getDate();
-
             const today = new Date();
 
             for (let i = firstDayIndex; i > 0; i--) {
@@ -283,7 +276,6 @@
                 if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
                     dayDiv.classList.add('today');
                 }
-
                 if (i === selectedDate.getDate() && month === selectedDate.getMonth() && year === selectedDate.getFullYear()) {
                     dayDiv.classList.add('selected');
                 }
@@ -308,19 +300,11 @@
         }
 
         function updateSelectedDateText() {
-            const options = { day: 'numeric', month: 'long', year: 'numeric' };
-            selectedDateDisplay.textContent = `Выбрано: ${selectedDate.toLocaleDateString('ru-RU', options)}`;
+            selectedDateDisplay.textContent = `Выбрано: ${selectedDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}`;
         }
 
-        prevMonthBtn.addEventListener('click', () => {
-            currentDate.setMonth(currentDate.getMonth() - 1);
-            renderCalendar();
-        });
-
-        nextMonthBtn.addEventListener('click', () => {
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            renderCalendar();
-        });
+        prevMonthBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); });
+        nextMonthBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); });
 
         sendNoteBtn.addEventListener('click', () => {
             const noteText = noteInput.value.trim();
@@ -334,13 +318,11 @@
             }
 
             const dateString = selectedDate.toLocaleDateString('ru-RU');
-
-            const fullMessage = `📅 Дата задачи: ${dateString}\n⏰ Время: ${taskTime}\n📝 Текст: ${noteText || 'Без текста'}\n📎 Медиафайл: ${fileName}`;
+            const fullMessage = `📅 Дата: ${dateString}\n⏰ Время: ${taskTime}\n📝 Текст: ${noteText || 'Без текста'}\n📎 Медиа: ${fileName}`;
             
             console.log("Отправка в Telegram:", fullMessage);
             alert(`Заметка на ${dateString} (${taskTime}) успешно сохранена и отправлена в Telegram!`);
             
-            // Сброс формы
             noteInput.value = '';
             mediaFile.value = '';
             fileNamePreview.textContent = 'Файл не выбран';
