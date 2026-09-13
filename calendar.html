@@ -13,29 +13,31 @@
         body.font-neon { font-family: 'Courier New', Courier, monospace; letter-spacing: 0.5px; }
         body.font-retro { font-family: 'Lucida Console', Monaco, monospace; text-transform: uppercase; font-size: 0.9rem; }
 
+        /* Динамическое свечение элементов */
         body.glow-enabled.glow-blue .card-glass, 
-        body.glow-enabled.glow-blue .settings-card, 
         body.glow-enabled.glow-blue .calendar-widget {
             border-color: rgba(96, 165, 250, 0.5);
             box-shadow: 0 0 25px rgba(59, 130, 246, 0.35), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
         body.glow-enabled.glow-purple .card-glass, 
-        body.glow-enabled.glow-purple .settings-card, 
         body.glow-enabled.glow-purple .calendar-widget {
             border-color: rgba(192, 132, 252, 0.5);
             box-shadow: 0 0 25px rgba(168, 85, 247, 0.35), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
         body.glow-enabled.glow-green .card-glass, 
-        body.glow-enabled.glow-green .settings-card, 
         body.glow-enabled.glow-green .calendar-widget {
             border-color: rgba(74, 222, 128, 0.5);
             box-shadow: 0 0 25px rgba(34, 197, 94, 0.35), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
         body.glow-enabled.glow-pink .card-glass, 
-        body.glow-enabled.glow-pink .settings-card, 
         body.glow-enabled.glow-pink .calendar-widget {
             border-color: rgba(244, 114, 182, 0.5);
             box-shadow: 0 0 25px rgba(236, 72, 153, 0.35), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
+        }
+        body.glow-enabled.glow-custom .card-glass, 
+        body.glow-enabled.glow-custom .calendar-widget {
+            border-color: var(--custom-glow-border, rgba(59, 130, 246, 0.5));
+            box-shadow: 0 0 25px var(--custom-glow-shadow, rgba(59, 130, 246, 0.35)), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
 
         .calendar-widget {
@@ -141,10 +143,9 @@
 </head>
 <body>
 
-    <video autoplay muted loop id="bgVideo">
-        <source src="assets/background.mp4" type="video/mp4">
-    </video>
-    <div class="video-overlay"></div>
+    <!-- Динамический контейнер фона -->
+    <div id="bgContainer" style="position: fixed; inset: 0; z-index: -2; overflow: hidden;"></div>
+    <div class="video-overlay" style="position: fixed; inset: 0; z-index: -1; background: rgba(11, 15, 25, 0.85);"></div>
 
     <header class="site-header">
         <div class="header-container">
@@ -207,6 +208,7 @@
     </main>
 
     <script>
+        // Применение стилей шрифта и свечения
         const savedFont = localStorage.getItem('appFontStyle') || 'modern';
         const savedGlow = localStorage.getItem('appGlow') === 'true';
         const savedGlowColor = localStorage.getItem('appGlowColor') || 'blue';
@@ -214,17 +216,65 @@
 
         document.body.classList.add(`font-${savedFont}`);
         if (savedGlow && savedGlowColor !== 'none') {
-            document.body.classList.add('glow-enabled');
-            if (savedGlowColor === 'custom') {
-                document.querySelectorAll('.card-glass, .settings-card, .calendar-widget').forEach(el => {
-                    el.style.borderColor = savedCustomColor;
-                    el.style.boxShadow = `0 0 25px ${savedCustomColor}66, 0 20px 50px rgba(0, 0, 0, 0.4)`;
-                });
+            document.body.classList.add('glow-enabled', `glow-${savedGlowColor}`);
+        }
+
+        if (savedGlowColor === 'custom') {
+            let r = parseInt(savedCustomColor.slice(1, 3), 16) || 59;
+            let g = parseInt(savedCustomColor.slice(3, 5), 16) || 130;
+            let b = parseInt(savedCustomColor.slice(5, 7), 16) || 246;
+            document.documentElement.style.setProperty('--custom-glow-border', `rgba(${r}, ${g}, ${b}, 0.5)`);
+            document.documentElement.style.setProperty('--custom-glow-shadow', `rgba(${r}, ${g}, ${b}, 0.35)`);
+        }
+
+        // Отрисовка фона из базы данных IndexedDB
+        const bgContainer = document.getElementById('bgContainer');
+        function renderBackground(dataUrl, fileType = '') {
+            bgContainer.innerHTML = '';
+            if (dataUrl) {
+                const isVideo = fileType.startsWith('video') || (typeof dataUrl === 'string' && (dataUrl.includes('data:video') || dataUrl.endsWith('.mp4')));
+                if (isVideo) {
+                    const video = document.createElement('video');
+                    video.src = dataUrl;
+                    video.autoplay = true;
+                    video.muted = true;
+                    video.loop = true;
+                    video.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+                    bgContainer.appendChild(video);
+                } else {
+                    const img = document.createElement('img');
+                    img.src = dataUrl;
+                    img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+                    bgContainer.appendChild(img);
+                }
             } else {
-                document.body.classList.add(`glow-${savedGlowColor}`);
+                const video = document.createElement('video');
+                video.src = 'assets/background.mp4';
+                video.autoplay = true;
+                video.muted = true;
+                video.loop = true;
+                video.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+                bgContainer.appendChild(video);
             }
         }
 
+        const dbPromise = indexedDB.open('OrganizerDB', 2);
+        dbPromise.onsuccess = () => {
+            const db = dbPromise.result;
+            if (!db.objectStoreNames.contains('files')) return;
+            const tx = db.transaction('files', 'readonly');
+            const store = tx.objectStore('files');
+            const req = store.get('backgroundData');
+            req.onsuccess = () => {
+                if (req.result) {
+                    renderBackground(req.result.data, req.result.type);
+                } else {
+                    renderBackground(null);
+                }
+            };
+        };
+
+        // Логика календаря и заметок
         let currentDate = new Date();
         let selectedDate = new Date();
         const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
