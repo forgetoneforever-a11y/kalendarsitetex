@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Календарь — Органайзер</title>
+    <title>Календарь — Texnikum work</title>
     
     <link rel="stylesheet" href="./css/variables.css">
     <link rel="stylesheet" href="./css/global.css">
@@ -13,130 +13,77 @@
         body.font-neon { font-family: 'Courier New', Courier, monospace; letter-spacing: 0.5px; }
         body.font-retro { font-family: 'Lucida Console', Monaco, monospace; text-transform: uppercase; font-size: 0.9rem; }
 
-        body.glow-enabled.glow-blue .card-glass, 
-        body.glow-enabled.glow-blue .calendar-widget {
+        .site-header {
+            position: sticky; top: 0; z-index: 50;
+            background: rgba(15, 23, 42, 0.45) !important;
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        .header-container { max-width: 1200px; margin: 0 auto; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.1rem; font-weight: 700; color: #f8fafc; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+        .nav-menu { display: flex; gap: 8px; }
+        .nav-menu a { color: #94a3b8; text-decoration: none; padding: 8px 16px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; transition: all 0.2s; }
+        .nav-menu a:hover { color: #fff; background: rgba(255, 255, 255, 0.06); }
+        .nav-menu a.active { color: #fff; background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.3); }
+
+        .card-glass, .calendar-widget {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(var(--card-blur, 10px));
+            -webkit-backdrop-filter: blur(var(--card-blur, 10px));
+        }
+
+        body.glow-enabled.glow-blue .card-glass, body.glow-enabled.glow-blue .calendar-widget {
             border-color: rgba(96, 165, 250, 0.5);
             box-shadow: 0 0 25px rgba(59, 130, 246, 0.35), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
-        body.glow-enabled.glow-purple .card-glass, 
-        body.glow-enabled.glow-purple .calendar-widget {
+        body.glow-enabled.glow-purple .card-glass, body.glow-enabled.glow-purple .calendar-widget {
             border-color: rgba(192, 132, 252, 0.5);
             box-shadow: 0 0 25px rgba(168, 85, 247, 0.35), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
-        body.glow-enabled.glow-green .card-glass, 
-        body.glow-enabled.glow-green .calendar-widget {
+        body.glow-enabled.glow-green .card-glass, body.glow-enabled.glow-green .calendar-widget {
             border-color: rgba(74, 222, 128, 0.5);
             box-shadow: 0 0 25px rgba(34, 197, 94, 0.35), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
-        body.glow-enabled.glow-pink .card-glass, 
-        body.glow-enabled.glow-pink .calendar-widget {
+        body.glow-enabled.glow-pink .card-glass, body.glow-enabled.glow-pink .calendar-widget {
             border-color: rgba(244, 114, 182, 0.5);
             box-shadow: 0 0 25px rgba(236, 72, 153, 0.35), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
-        body.glow-enabled.glow-custom .card-glass, 
-        body.glow-enabled.glow-custom .calendar-widget {
+        body.glow-enabled.glow-custom .card-glass, body.glow-enabled.glow-custom .calendar-widget {
             border-color: var(--custom-glow-border, rgba(59, 130, 246, 0.5));
             box-shadow: 0 0 25px var(--custom-glow-shadow, rgba(59, 130, 246, 0.35)), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
 
-        .calendar-widget {
-            padding: 28px !important;
-        }
+        .calendar-widget { padding: 28px !important; border-radius: 16px; }
         .calendar-day {
-            padding: 16px 10px !important;
-            text-align: center;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: #f8fafc;
-            font-size: 1.05rem !important;
-            user-select: none;
-            position: relative;
+            padding: 16px 10px !important; text-align: center; border-radius: 10px; cursor: pointer;
+            transition: all 0.2s ease; color: #f8fafc; font-size: 1.05rem !important; user-select: none;
         }
-        .calendar-day:hover {
-            background: rgba(255, 255, 255, 0.08);
-        }
-        .calendar-day.other-month {
-            color: #475569;
-        }
-        .calendar-day.today {
-            border: 1px dashed #60a5fa;
-        }
-        .calendar-day.selected {
-            background: #3b82f6 !important;
-            color: #fff;
-            font-weight: bold;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-            border: none;
-        }
+        .calendar-day:hover { background: rgba(255, 255, 255, 0.08); }
+        .calendar-day.other-month { color: #475569; }
+        .calendar-day.today { border: 1px dashed #60a5fa; }
+        .calendar-day.selected { background: #3b82f6 !important; color: #fff; font-weight: bold; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); border: none; }
         .calendar-nav-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #fff;
-            padding: 8px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.2s;
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff; padding: 8px 14px; border-radius: 8px; cursor: pointer; transition: background 0.2s;
         }
-        .calendar-nav-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-        .note-controls-row {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 12px;
-            align-items: center;
-        }
-        .time-input-wrap {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .time-input-wrap label {
-            font-size: 0.8rem;
-            color: #94a3b8;
-        }
+        .calendar-nav-btn:hover { background: rgba(255, 255, 255, 0.15); }
+        .note-controls-row { display: flex; gap: 12px; margin-bottom: 12px; align-items: center; }
+        .time-input-wrap { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .time-input-wrap label { font-size: 0.8rem; color: #94a3b8; }
         .time-input {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #fff;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            outline: none;
-            width: 100%;
+            background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff; padding: 10px; border-radius: 8px; font-size: 0.95rem; outline: none; width: 100%;
         }
         .file-upload-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px dashed rgba(255, 255, 255, 0.2);
-            color: #cbd5e1;
-            padding: 10px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-            text-align: center;
-            justify-content: center;
-            flex: 1;
+            background: rgba(255, 255, 255, 0.05); border: 1px dashed rgba(255, 255, 255, 0.2);
+            color: #cbd5e1; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;
+            display: flex; align-items: center; gap: 8px; transition: all 0.2s; text-align: center; justify-content: center; flex: 1;
         }
-        .file-upload-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: #60a5fa;
-            color: #fff;
-        }
-        #mediaFile {
-            display: none;
-        }
-        .file-name-preview {
-            font-size: 0.8rem;
-            color: #60a5fa;
-            margin-bottom: 10px;
-            word-break: break-all;
-        }
+        .file-upload-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: #60a5fa; color: #fff; }
+        #mediaFile { display: none; }
+        .file-name-preview { font-size: 0.8rem; color: #60a5fa; margin-bottom: 10px; word-break: break-all; }
     </style>
     <script>
         const savedOpacity = localStorage.getItem('appBgOpacity') ?? '0.85';
@@ -171,7 +118,7 @@
 
     <header class="site-header">
         <div class="header-container">
-            <a href="calendar.html" class="logo">📅 Органайзер</a>
+            <a href="calendar.html" class="logo">💻 Texnikum work</a>
             <nav class="nav-menu">
                 <a href="calendar.html" class="active">Календарь и Заметки</a>
                 <a href="index.html">Расписание</a>
@@ -186,10 +133,9 @@
             <p class="subtitle">Выбирай дату и добавляй задачи с отправкой в Telegram.</p>
             
             <div class="calendar-grid-layout" style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 35px; align-items: start;">
-                
-                <div class="calendar-widget" style="background: rgba(15, 23, 42, 0.4); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.06);">
+                <div class="calendar-widget" style="background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255, 255, 255, 0.06);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3 id="monthYearTitle" style="font-size: 1.25rem; color: #f8fafc;"></h3>
+                        <h3 id="monthYearTitle" style="font-size: 1.25rem; color: #f8fafc; margin: 0;"></h3>
                         <div style="display: flex; gap: 8px;">
                             <button class="calendar-nav-btn" id="prevMonthBtn">&larr;</button>
                             <button class="calendar-nav-btn" id="nextMonthBtn">&rarr;</button>
@@ -202,7 +148,7 @@
                 </div>
 
                 <div class="notes-panel">
-                    <h3 id="selectedDateTitle">Заметки на выбранный день</h3>
+                    <h3>Заметки на выбранный день</h3>
                     <div id="selectedDateDisplay" style="font-size: 0.9rem; color: #60a5fa; margin-bottom: 12px; font-weight: 500;">Дата не выбрана</div>
                     
                     <div class="note-controls-row">
@@ -215,16 +161,13 @@
                     <textarea id="noteInput" placeholder="Введите задачу или напоминание..." style="min-height: 130px; margin-bottom: 10px;"></textarea>
                     
                     <div class="note-controls-row" style="margin-bottom: 6px;">
-                        <label for="mediaFile" class="file-upload-btn">
-                            📎 Прикрепить фото/медиа
-                        </label>
+                        <label for="mediaFile" class="file-upload-btn">📎 Прикрепить фото/медиа</label>
                         <input type="file" id="mediaFile" accept="image/*,video/*">
                     </div>
                     <div id="fileNamePreview" class="file-name-preview">Файл не выбран</div>
 
                     <button class="btn-accent" id="sendNoteBtn">Сохранить и отправить в Telegram</button>
                 </div>
-
             </div>
         </section>
     </main>
@@ -249,11 +192,7 @@
         timeInput.value = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 
         mediaFile.addEventListener('change', () => {
-            if (mediaFile.files.length > 0) {
-                fileNamePreview.textContent = `Выбран файл: ${mediaFile.files[0].name}`;
-            } else {
-                fileNamePreview.textContent = 'Файл не выбран';
-            }
+            fileNamePreview.textContent = mediaFile.files.length > 0 ? `Выбран файл: ${mediaFile.files[0].name}` : 'Файл не выбран';
         });
 
         function renderCalendar() {
@@ -291,7 +230,6 @@
                     updateSelectedDateText();
                     renderCalendar();
                 });
-
                 calendarDaysGrid.appendChild(dayDiv);
             }
 
@@ -324,9 +262,6 @@
             }
 
             const dateString = selectedDate.toLocaleDateString('ru-RU');
-            const fullMessage = `📅 Дата: ${dateString}\n⏰ Время: ${taskTime}\n📝 Текст: ${noteText || 'Без текста'}\n📎 Медиа: ${fileName}`;
-            
-            console.log("Отправка в Telegram:", fullMessage);
             alert(`Заметка на ${dateString} (${taskTime}) успешно сохранена и отправлена в Telegram!`);
             
             noteInput.value = '';
