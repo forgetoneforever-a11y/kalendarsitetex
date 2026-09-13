@@ -1,46 +1,58 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Главная страница — Мой проект</title>
-    
-    <!-- Подключение стилей в правильном порядке -->
-    <link rel="stylesheet" href="./css/variables.css">
-    <link rel="stylesheet" href="./css/global.css">
-    <link rel="stylesheet" href="./css/layout.css">
-    <link rel="stylesheet" href="./css/pages/home.css">
-</head>
-<body>
-
-    <!-- Шапка сайта (общая для всех страниц) -->
-    <header class="site-header">
-        <div class="container header-container">
-            <a href="index.html" class="logo">Логотип</a>
+            <a href="index.html" class="logo">🚀 МойПроект</a>
             <nav class="nav-menu">
                 <a href="index.html" class="active">Главная</a>
                 <a href="about.html">О нас</a>
                 <a href="schedule.html">Расписание</a>
                 <a href="contact.html">Контакты</a>
             </nav>
+            <button class="burger-menu" id="burgerBtn" aria-label="Открыть меню">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
         </div>
     </header>
 
-    <!-- Уникальный контент страницы -->
+    <!-- Уникальный контент главной страницы -->
     <main class="site-main">
         <section class="hero-section">
+            <div class="container hero-content">
+                <span class="badge">Добро пожаловать</span>
+                <h1>Удобная архитектура многостраничного сайта</h1>
+                <p>Этот проект построен на чистых HTML, CSS и JavaScript с полным разделением стилей, логики и переиспользуемых компонентов.</p>
+                <div class="hero-buttons">
+                    <a href="schedule.html" class="btn-primary">Посмотреть расписание</a>
+                    <a href="about.html" class="btn-secondary">Узнать больше</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="features-section">
             <div class="container">
-                <h1>Добро пожаловать!</h1>
-                <p>Это главная страница нашего удобного многостраничного приложения.</p>
-                <button class="btn-primary" id="welcomeBtn">Нажми на меня</button>
+                <h2>Преимущества подхода</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3>📦 Модульность</h3>
+                        <p>Каждая страница имеет свой изолированный CSS и JS файл, что исключает конфликты стилей.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🎨 Дизайн-система</h3>
+                        <p>Все цвета, шрифты и переменные собраны в одном месте для быстрой смены темы.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>⚡ Быстрый старт</h3>
+                        <p>Никаких тяжелых сборщиков и лишних зависимостей — сайт готов к работе прямо «из коробки».</p>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
 
-    <!-- Подвал сайта (общий для всех страниц) -->
+    <!-- Подвал сайта -->
     <footer class="site-footer">
-        <div class="container">
-            <p>&copy; 2026 Все права защищены.</p>
+        <div class="container footer-container">
+            <p>&copy; 2026 МойПроект. Все права защищены.</p>
+            <p class="footer-note">Собрано с заботой и чистым кодом.</p>
         </div>
     </footer>
 
