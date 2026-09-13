@@ -55,15 +55,9 @@
             box-shadow: 0 0 25px var(--custom-glow-shadow, rgba(59, 130, 246, 0.35)), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
 
-        /* Верхняя панель виджетов */
+        /* Верхняя панель виджета (на всю ширину) */
         .widgets-bar {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
             margin-bottom: 25px;
-        }
-        @media (max-width: 900px) {
-            .widgets-bar { grid-template-columns: 1fr; }
         }
         .widget-box {
             padding: 20px 24px;
@@ -126,15 +120,6 @@
         .file-upload-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: #60a5fa; color: #fff; }
         #mediaFile { display: none; }
         .file-name-preview { font-size: 0.85rem; color: #60a5fa; margin-bottom: 12px; word-break: break-all; }
-
-        /* Кнопки помодоро таймера */
-        .pomodoro-btns { display: flex; gap: 10px; margin-top: 12px; }
-        .pomodoro-btn {
-            flex: 1; padding: 8px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.05); color: #fff; cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: all 0.2s;
-        }
-        .pomodoro-btn:hover { background: rgba(255, 255, 255, 0.12); }
-        .pomodoro-btn.active-mode { background: rgba(59, 130, 246, 0.3); border-color: #60a5fa; }
     </style>
     <script>
         const savedOpacity = localStorage.getItem('appBgOpacity') ?? '0.85';
@@ -182,39 +167,19 @@
 
     <main class="site-main">
         <section class="card-glass" style="max-width: 1300px; padding: 35px;">
-            <h1 style="font-size: 2rem; margin-bottom: 8px;">Календарь и Умные виджеты</h1>
-            <p class="subtitle" style="margin-bottom: 25px;">Интерактивный планер, контроль пар в реальном времени и Pomodoro таймер.</p>
+            <h1 style="font-size: 2rem; margin-bottom: 8px;">Календарь и Заметки</h1>
+            <p class="subtitle" style="margin-bottom: 25px;">Выбирай дату, управляй расписанием и отправляй задачи в Telegram.</p>
             
-            <!-- ПАНЕЛЬ ВИДЖЕТОВ (Widgets Bar) -->
+            <!-- ПАНЕЛЬ ВИДЖЕТОВ (Индикатор текущей пары) -->
             <div class="widgets-bar">
-                <!-- Виджет 1: Текущая пара / Расписание реального времени -->
-                <div class="widget-box">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <span style="font-size: 0.9rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">🎓 Статус пары сейчас</span>
-                        <span id="liveClock" style="font-size: 0.9rem; color: #60a5fa; font-weight: 600;">11:30</span>
-                    </div>
-                    <div id="currentPairWidget" style="display: flex; flex-direction: column; gap: 6px;">
-                        <div id="pairTitle" style="font-size: 1.15rem; font-weight: 600; color: #fff;">Загрузка расписания...</div>
-                        <div id="pairMeta" style="font-size: 0.9rem; color: #cbd5e1;">Ожидание начала занятий</div>
-                    </div>
-                </div>
-
-                <!-- Виджет 2: Помодоро-таймер (Pomodoro) -->
                 <div class="widget-box">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="font-size: 0.9rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">⏱️ Помодоро фокус</span>
-                        <span id="pomodoroModeTitle" style="font-size: 0.85rem; color: #60a5fa; font-weight: 500;">Работа</span>
+                        <span style="font-size: 0.9rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">🎓 Статус пары сейчас</span>
+                        <span id="liveClock" style="font-size: 0.95rem; color: #60a5fa; font-weight: 600;">11:30</span>
                     </div>
-                    <div style="display: flex; align-items: baseline; justify-content: space-between;">
-                        <div id="pomodoroTime" style="font-size: 2rem; font-weight: 700; color: #fff; font-family: monospace;">25:00</div>
-                        <div style="display: flex; gap: 8px;">
-                            <button id="pomodoroStartBtn" class="calendar-nav-btn" style="padding: 6px 14px; font-size: 0.9rem;">Старт</button>
-                            <button id="pomodoroResetBtn" class="calendar-nav-btn" style="padding: 6px 14px; font-size: 0.9rem;">Сброс</button>
-                        </div>
-                    </div>
-                    <div class="pomodoro-btns">
-                        <button class="pomodoro-btn active-mode" id="modeWorkBtn" onclick="setPomodoroMode('work', 25)">Работа (25м)</button>
-                        <button class="pomodoro-btn" id="modeRestBtn" onclick="setPomodoroMode('rest', 5)">Отдых (5м)</button>
+                    <div id="currentPairWidget" style="display: flex; flex-direction: column; gap: 4px;">
+                        <div id="pairTitle" style="font-size: 1.15rem; font-weight: 600; color: #fff;">Загрузка расписания...</div>
+                        <div id="pairMeta" style="font-size: 0.9rem; color: #cbd5e1;">Ожидание начала занятий</div>
                     </div>
                 </div>
             </div>
@@ -365,7 +330,7 @@
         renderCalendar();
 
 
-        // --- ВИДЖЕТ 1: ИНДИКАТОР ТЕКУЩЕЙ ПАРЫ ---
+        // --- ИНДИКАТОР ТЕКУЩЕЙ ПАРЫ ---
         const scheduleMock = [
             { start: "08:30", end: "10:00", name: "Технология машиностроения", room: "Ауд. 302" },
             { start: "10:10", end: "11:40", name: "Детали машин", room: "Ауд. 415" },
@@ -413,77 +378,6 @@
         }
         setInterval(updateLivePairWidget, 1000);
         updateLivePairWidget();
-
-
-        // --- ВИДЖЕТ 2: POMODORO ТАЙМЕР ---
-        let pomodoroSeconds = 25 * 60;
-        let pomodoroTimer = null;
-        let isPomodoroRunning = false;
-        let currentPomodoroType = 'work';
-
-        const pomodoroTimeEl = document.getElementById('pomodoroTime');
-        const pomodoroStartBtn = document.getElementById('pomodoroStartBtn');
-        const pomodoroResetBtn = document.getElementById('pomodoroResetBtn');
-        const pomodoroModeTitle = document.getElementById('pomodoroModeTitle');
-        const modeWorkBtn = document.getElementById('modeWorkBtn');
-        const modeRestBtn = document.getElementById('modeRestBtn');
-
-        function updatePomodoroDisplay() {
-            let m = Math.floor(pomodoroSeconds / 60);
-            let s = pomodoroSeconds % 60;
-            pomodoroTimeEl.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-        }
-
-        function setPomodoroMode(type, minutes) {
-            clearInterval(pomodoroTimer);
-            isPomodoroRunning = false;
-            pomodoroStartBtn.textContent = 'Старт';
-            currentPomodoroType = type;
-            pomodoroSeconds = minutes * 60;
-            updatePomodoroDisplay();
-
-            if (type === 'work') {
-                modeWorkBtn.classList.add('active-mode');
-                modeRestBtn.classList.remove('active-mode');
-                pomodoroModeTitle.textContent = 'Работа';
-            } else {
-                modeRestBtn.classList.add('active-mode');
-                modeWorkBtn.classList.remove('active-mode');
-                pomodoroModeTitle.textContent = 'Отдых';
-            }
-        }
-
-        pomodoroStartBtn.addEventListener('click', () => {
-            if (isPomodoroRunning) {
-                clearInterval(pomodoroTimer);
-                isPomodoroRunning = false;
-                pomodoroStartBtn.textContent = 'Старт';
-            } else {
-                isPomodoroRunning = true;
-                pomodoroStartBtn.textContent = 'Пауза';
-                pomodoroTimer = setInterval(() => {
-                    if (pomodoroSeconds > 0) {
-                        pomodoroSeconds--;
-                        updatePomodoroDisplay();
-                    } else {
-                        clearInterval(pomodoroTimer);
-                        isPomodoroRunning = false;
-                        pomodoroStartBtn.textContent = 'Старт';
-                        alert(currentPomodoroType === 'work' ? 'Время работы истекло! Пора сделать перерыв ☕' : 'Отдых окончен, за работу! 💻');
-                    }
-                }, 1000);
-            }
-        });
-
-        pomodoroResetBtn.addEventListener('click', () => {
-            clearInterval(pomodoroTimer);
-            isPomodoroRunning = false;
-            pomodoroStartBtn.textContent = 'Старт';
-            pomodoroSeconds = currentPomodoroType === 'work' ? 25 * 60 : 5 * 60;
-            updatePomodoroDisplay();
-        });
-
-        updatePomodoroDisplay();
     </script>
 </body>
 </html>
