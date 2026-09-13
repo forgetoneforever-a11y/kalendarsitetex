@@ -64,20 +64,10 @@
                 text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
                 animation: textFlicker 1.5s infinite;
             }
-            @keyframes spinClockwise {
-                to { transform: rotate(360deg); }
-            }
-            @keyframes spinCounter {
-                to { transform: rotate(-360deg); }
-            }
-            @keyframes pulseCore {
-                0% { transform: scale(0.8); opacity: 0.7; }
-                100% { transform: scale(1.2); opacity: 1; }
-            }
-            @keyframes textFlicker {
-                0%, 100% { opacity: 1; }
-                50% { opacity: 0.6; }
-            }
+            @keyframes spinClockwise { to { transform: rotate(360deg); } }
+            @keyframes spinCounter { to { transform: rotate(-360deg); } }
+            @keyframes pulseCore { 0% { transform: scale(0.8); opacity: 0.7; } 100% { transform: scale(1.2); opacity: 1; } }
+            @keyframes textFlicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
         </style>
     `;
     loader.style.cssText = `
@@ -96,31 +86,28 @@
 
     document.addEventListener("DOMContentLoaded", () => {
         document.body.appendChild(loader);
-
-        // Плавное скрытие лоадера при открытии новой страницы
-        setTimeout(() => {
-            loader.style.opacity = "0";
-        }, 120);
+        setTimeout(() => { loader.style.opacity = "0"; }, 120);
     });
 
-    // Перехват кликов по меню для мгновенного включения анимации
     document.addEventListener('click', (e) => {
         const link = e.target.closest('.nav-menu a, .logo');
         if (!link) return;
-
         const href = link.getAttribute('href');
         if (!href || href.startsWith('#') || href.startsWith('http')) return;
 
         e.preventDefault();
-        loader.style.opacity = "1"; // Мгновенно активируем киберпанк-экран загрузки
-        
-        setTimeout(() => {
-            window.location.href = href;
-        }, 150); // Плавный переход
+        loader.style.opacity = "1";
+        setTimeout(() => { window.location.href = href; }, 150);
     });
 })();
 
-// Глобальная отрисовка фона с сохранением времени видео в sessionStorage
+// Применение настроек размытия панелей из localStorage сразу при старте
+(function() {
+    const savedCardBlur = localStorage.getItem('appCardBlur') || '10';
+    document.documentElement.style.setProperty('--card-blur', savedCardBlur + 'px');
+})();
+
+// Глобальная отрисовка фона с сохранением таймлайна видео
 function renderBackground(dataUrl, fileType = '') {
     const bgContainer = document.getElementById('bgContainer');
     if (!bgContainer) return;
@@ -139,12 +126,9 @@ function renderBackground(dataUrl, fileType = '') {
             video.style.cssText = 'width: 100%; height: 100%; object-fit: cover; transform: scale(1.02);';
             
             const savedTime = sessionStorage.getItem('bgVideoTime');
-            if (savedTime) {
-                video.currentTime = parseFloat(savedTime);
-            }
+            if (savedTime) { video.currentTime = parseFloat(savedTime); }
 
             video.play().catch(() => {});
-
             video.addEventListener('timeupdate', () => {
                 sessionStorage.setItem('bgVideoTime', video.currentTime);
             });
@@ -165,9 +149,7 @@ function renderBackground(dataUrl, fileType = '') {
         video.style.cssText = 'width: 100%; height: 100%; object-fit: cover; transform: scale(1.02);';
         
         const savedTime = sessionStorage.getItem('bgVideoTime');
-        if (savedTime) {
-            video.currentTime = parseFloat(savedTime);
-        }
+        if (savedTime) { video.currentTime = parseFloat(savedTime); }
         video.play().catch(() => {});
 
         video.addEventListener('timeupdate', () => {
@@ -178,24 +160,7 @@ function renderBackground(dataUrl, fileType = '') {
     }
 }
 
-async function saveBackgroundToDB(bgData) {
-    return new Promise((resolve) => {
-        const dbOpen = indexedDB.open('OrganizerDB', 2);
-        dbOpen.onupgradeneeded = (e) => {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains('files')) db.createObjectStore('files');
-        };
-        dbOpen.onsuccess = () => {
-            const db = dbOpen.result;
-            const tx = db.transaction('files', 'readwrite');
-            const store = tx.objectStore('files');
-            store.put(bgData, 'backgroundData');
-            tx.oncomplete = () => resolve(true);
-        };
-    });
-}
-
-// Загрузка фона из IndexedDB при старте любой страницы
+// Загрузка бэкграунда из IndexedDB
 (function loadBackgroundFromDB() {
     const dbOpen = indexedDB.open('OrganizerDB', 2);
     dbOpen.onsuccess = () => {
@@ -205,11 +170,8 @@ async function saveBackgroundToDB(bgData) {
         const store = tx.objectStore('files');
         const req = store.get('backgroundData');
         req.onsuccess = () => {
-            if (req.result) {
-                renderBackground(req.result.data, req.result.type);
-            } else {
-                renderBackground(null);
-            }
+            if (req.result) { renderBackground(req.result.data, req.result.type); }
+            else { renderBackground(null); }
         };
     };
     dbOpen.onerror = () => renderBackground(null);
