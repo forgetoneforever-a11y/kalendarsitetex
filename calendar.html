@@ -9,6 +9,19 @@
     <link rel="stylesheet" href="./css/global.css">
     <link rel="stylesheet" href="./css/layout.css">
     <style>
+        /* Стили шрифтов */
+        body.font-modern { font-family: system-ui, -apple-system, sans-serif; }
+        body.font-neon { font-family: 'Courier New', Courier, monospace; letter-spacing: 0.5px; }
+        body.font-retro { font-family: 'Lucida Console', Monaco, monospace; text-transform: uppercase; font-size: 0.9rem; }
+
+        /* Эффект свечения (Glow) */
+        body.glow-enabled .card-glass, 
+        body.glow-enabled .settings-card, 
+        body.glow-enabled .calendar-widget {
+            border-color: rgba(96, 165, 250, 0.4);
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.25), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
+        }
+
         .calendar-day {
             padding: 10px;
             text-align: center;
@@ -17,6 +30,7 @@
             transition: all 0.2s ease;
             color: #f8fafc;
             user-select: none;
+            position: relative;
         }
         .calendar-day:hover {
             background: rgba(255, 255, 255, 0.08);
@@ -24,11 +38,17 @@
         .calendar-day.other-month {
             color: #475569;
         }
+        /* Подсветка сегодняшнего дня (рамка / точка) */
+        .calendar-day.today {
+            border: 1px dashed #60a5fa;
+        }
+        /* Выбранный день */
         .calendar-day.selected {
             background: #3b82f6 !important;
             color: #fff;
             font-weight: bold;
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            border: none;
         }
         .calendar-nav-btn {
             background: rgba(255, 255, 255, 0.05);
@@ -99,8 +119,16 @@
     </main>
 
     <script>
+        // Применение тем из localStorage
+        const savedFont = localStorage.getItem('appFontStyle') || 'modern';
+        const savedGlow = localStorage.getItem('appGlow') === 'true';
+        document.body.classList.add(`font-${savedFont}`);
+        if (savedGlow) {
+            document.body.classList.add('glow-enabled');
+        }
+
         let currentDate = new Date();
-        let selectedDate = new Date();
+        let selectedDate = new Date(); // По умолчанию текущая дата
 
         const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
 
@@ -119,12 +147,11 @@
             monthYearTitle.textContent = `${monthNames[month]} ${year}`;
             calendarDaysGrid.innerHTML = '';
 
-            // Первый день месяца
             const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7;
-            // Последний день текущего месяца
             const lastDay = new Date(year, month + 1, 0).getDate();
-            // Последний день предыдущего месяца
             const prevLastDay = new Date(year, month, 0).getDate();
+
+            const today = new Date();
 
             // Дни прошлого месяца
             for (let i = firstDayIndex; i > 0; i--) {
@@ -140,6 +167,12 @@
                 dayDiv.textContent = i;
                 dayDiv.className = 'calendar-day';
 
+                // Подсветка сегодняшнего дня
+                if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                    dayDiv.classList.add('today');
+                }
+
+                // Подсветка выбранного дня
                 if (i === selectedDate.getDate() && month === selectedDate.getMonth() && year === selectedDate.getFullYear()) {
                     dayDiv.classList.add('selected');
                 }
@@ -153,7 +186,7 @@
                 calendarDaysGrid.appendChild(dayDiv);
             }
 
-            // Дни следующего месяца для заполнения сетки
+            // Дни следующего месяца
             const totalCells = calendarDaysGrid.children.length;
             const nextDays = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
             for (let i = 1; i <= nextDays; i++) {
@@ -197,7 +230,6 @@
             noteInput.value = '';
         });
 
-        // Инициализация при загрузке
         updateSelectedDateText();
         renderCalendar();
     </script>
