@@ -99,7 +99,6 @@
             width: 45px;
             text-align: right;
         }
-
         .file-drop-area {
             border: 2px dashed rgba(255, 255, 255, 0.15);
             padding: 20px;
@@ -121,7 +120,7 @@
 <body>
 
     <div id="bgContainer" style="position: fixed; inset: 0; z-index: -2; overflow: hidden;"></div>
-    <div id="videoOverlay" style="position: fixed; inset: 0; z-index: -1; background: rgba(11, 15, 25, 0.85); transition: background 0.2s;"></div>
+    <div id="videoOverlay" style="position: fixed; inset: 0; z-index: -1; background: rgba(11, 15, 25, 0.85);"></div>
 
     <header class="site-header">
         <div class="header-container">
@@ -181,7 +180,6 @@
                     </div>
                 </div>
 
-                <!-- Регулировка затемнения фона -->
                 <div class="setting-item" style="margin-top: 15px;">
                     <label for="overlayOpacityRange">Затемнение фона (прозрачность подложки):</label>
                     <div class="range-slider-wrap">
@@ -190,7 +188,6 @@
                     </div>
                 </div>
 
-                <!-- Регулировка размытия фона -->
                 <div class="setting-item" style="margin-top: 15px;">
                     <label for="bgBlurRange">Размытие фона (Blur):</label>
                     <div class="range-slider-wrap">
@@ -231,7 +228,7 @@
         const bgContainer = document.getElementById('bgContainer');
         const videoOverlay = document.getElementById('videoOverlay');
 
-        // Загрузка сохраненных настроек
+        // Чтение настроек
         const savedFont = localStorage.getItem('appFontStyle') || 'modern';
         const savedGlow = localStorage.getItem('appGlow') === 'true';
         const savedGlowColor = localStorage.getItem('appGlowColor') || 'blue';
@@ -319,6 +316,7 @@
             }
         }
 
+        // Загрузка из IndexedDB
         const dbPromise = indexedDB.open('OrganizerDB', 2);
         dbPromise.onsuccess = () => {
             const db = dbPromise.result;
