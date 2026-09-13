@@ -55,19 +55,9 @@
             box-shadow: 0 0 25px var(--custom-glow-shadow, rgba(59, 130, 246, 0.35)), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
 
-        /* Верхняя панель виджета (на всю ширину) */
-        .widgets-bar {
-            margin-bottom: 25px;
-        }
-        .widget-box {
-            padding: 20px 24px;
-            border-radius: 16px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
+        .widgets-bar { margin-bottom: 25px; }
+        .widget-box { padding: 20px 24px; border-radius: 16px; display: flex; flex-direction: column; justify-content: space-between; }
 
-        /* Стили календаря */
         .calendar-widget { padding: 30px !important; border-radius: 18px; }
         .calendar-day {
             background: rgba(255, 255, 255, 0.02);
@@ -120,6 +110,76 @@
         .file-upload-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: #60a5fa; color: #fff; }
         #mediaFile { display: none; }
         .file-name-preview { font-size: 0.85rem; color: #60a5fa; margin-bottom: 12px; word-break: break-all; }
+
+        /* Стили для Todo-чеклистов внутри заметок */
+        .todo-item-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            transition: all 0.2s;
+        }
+        .todo-item-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #3b82f6;
+            cursor: pointer;
+        }
+        .todo-item-row input[type="text"] {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+            flex: 1;
+        }
+        .todo-item-row input[type="text"].completed {
+            text-decoration: line-through;
+            color: #64748b;
+        }
+        .todo-delete-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 1rem;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .todo-delete-btn:hover { opacity: 1; }
+
+        /* Панель настройки звука в шапке заметок */
+        .settings-bar-mini {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+        .sound-toggle-btn {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #60a5fa;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .sound-toggle-btn:hover { background: rgba(59, 130, 246, 0.3); }
+        .sound-toggle-btn.off {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
     </style>
     <script>
         const savedOpacity = localStorage.getItem('appBgOpacity') ?? '0.85';
@@ -202,6 +262,11 @@
                 </div>
 
                 <div class="notes-panel" style="display: flex; flex-direction: column; gap: 12px;">
+                    <div class="settings-bar-mini">
+                        <span>🔊 Звуковые эффекты UI</span>
+                        <button id="soundToggleBtn" class="sound-toggle-btn">ВКЛ</button>
+                    </div>
+
                     <h3 style="font-size: 1.2rem; color: #fff; margin-bottom: 0;">Заметки на выбранный день</h3>
                     <div id="selectedDateDisplay" style="font-size: 0.95rem; color: #60a5fa; font-weight: 500;">Дата не выбрана</div>
                     
@@ -213,8 +278,19 @@
                     </div>
 
                     <div style="display: flex; flex-direction: column; gap: 6px;">
-                        <label style="font-size: 0.85rem; color: #94a3b8;">Текст задачи:</label>
-                        <textarea id="noteInput" placeholder="Введите задачу или напоминание..." style="min-height: 130px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; padding: 14px; border-radius: 10px; font-size: 0.95rem; outline: none; resize: vertical;"></textarea>
+                        <label style="font-size: 0.85rem; color: #94a3b8;">Основной текст / Описание:</label>
+                        <textarea id="noteInput" placeholder="Введите общую задачу или напоминание..." style="min-height: 90px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; padding: 12px; border-radius: 10px; font-size: 0.95rem; outline: none; resize: vertical;"></textarea>
+                    </div>
+
+                    <!-- Интерактивный Чек-лист (Todo) -->
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <label style="font-size: 0.85rem; color: #94a3b8;">Чек-лист задач (подпункты):</label>
+                            <button id="addTodoItemBtn" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #60a5fa; padding: 2px 8px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;">+ Пункт</button>
+                        </div>
+                        <div id="todoItemsContainer" style="display: flex; flex-direction: column; max-height: 140px; overflow-y: auto; padding-right: 4px;">
+                            <!-- Динамические пункты списка -->
+                        </div>
                     </div>
                     
                     <div class="note-controls-row" style="margin-bottom: 0;">
@@ -231,6 +307,87 @@
 
     <script src="./js/app-background.js"></script>
     <script>
+        // --- АУДИОСИСТЕМА UI (Микро-звуки на Web Audio API) ---
+        let soundEnabled = localStorage.getItem('appSoundEnabled') !== 'false';
+        const soundToggleBtn = document.getElementById('soundToggleBtn');
+
+        function updateSoundButtonUI() {
+            if (soundEnabled) {
+                soundToggleBtn.textContent = 'ВКЛ';
+                soundToggleBtn.classList.remove('off');
+            } else {
+                soundToggleBtn.textContent = 'ВЫКЛ';
+                soundToggleBtn.classList.add('off');
+            }
+        }
+        updateSoundButtonUI();
+
+        soundToggleBtn.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('appSoundEnabled', soundEnabled);
+            updateSoundButtonUI();
+            if (soundEnabled) playUiSound('click');
+        });
+
+        // Синтез футуристичных микро-щелчков без внешних файлов
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playUiSound(type = 'hover') {
+            if (!soundEnabled) return;
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'hover') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(400, now + 0.03);
+                gain.gain.setValueAtTime(0.015, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.03);
+                osc.start(now);
+                osc.stop(now + 0.03);
+            } else if (type === 'click') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(1200, now);
+                osc.frequency.exponentialRampToValueAtTime(300, now + 0.05);
+                gain.gain.setValueAtTime(0.03, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            } else if (type === 'check') {
+                // Мелодичный подъем при выполнении чекбокса
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, now); // D5
+                osc.frequency.setValueAtTime(880, now + 0.04); // A5
+                gain.gain.setValueAtTime(0.04, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.12);
+                osc.start(now);
+                osc.stop(now + 0.12);
+            }
+        }
+
+        // Авто-привязка звуков к интерактивным элементам интерфейса
+        document.addEventListener('mouseover', (e) => {
+            if (e.target.matches('button, a, .calendar-day, .file-upload-btn, input[type="checkbox"]')) {
+                playUiSound('hover');
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('button, a, .calendar-day, .file-upload-btn, input[type="checkbox"]')) {
+                if (!e.target.matches('input[type="checkbox"]')) {
+                    playUiSound('click');
+                }
+            }
+        });
+
+
         // --- КАЛЕНДАРЬ ---
         let currentDate = new Date();
         let selectedDate = new Date();
@@ -246,12 +403,98 @@
         const mediaFile = document.getElementById('mediaFile');
         const fileNamePreview = document.getElementById('fileNamePreview');
         const sendNoteBtn = document.getElementById('sendNoteBtn');
+        const addTodoItemBtn = document.getElementById('addTodoItemBtn');
+        const todoItemsContainer = document.getElementById('todoItemsContainer');
 
         timeInput.value = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 
         mediaFile.addEventListener('change', () => {
             fileNamePreview.textContent = mediaFile.files.length > 0 ? `Выбран файл: ${mediaFile.files[0].name}` : 'Файл не выбран';
         });
+
+        // --- ИНТЕРАКТИВНЫЙ ЧЕК-ЛИСТ (Todo) ---
+        function createTodoRow(text = '', completed = false) {
+            const row = document.createElement('div');
+            row.className = 'todo-item-row';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = completed;
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.placeholder = 'Подпункт задачи...';
+            input.value = text;
+            if (completed) input.classList.add('completed');
+
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) {
+                    input.classList.add('completed');
+                    playUiSound('check');
+                    spawnMiniParticles(checkbox);
+                } else {
+                    input.classList.remove('completed');
+                    playUiSound('click');
+                }
+            });
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'todo-delete-btn';
+            delBtn.innerHTML = '&times;';
+            delBtn.title = 'Удалить пункт';
+            delBtn.addEventListener('click', () => {
+                row.remove();
+                playUiSound('click');
+            });
+
+            row.appendChild(checkbox);
+            row.appendChild(input);
+            row.appendChild(delBtn);
+            todoItemsContainer.appendChild(row);
+        }
+
+        // Мини-анимация частиц при выполнении чекбокса
+        function spawnMiniParticles(targetEl) {
+            const rect = targetEl.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+
+            for (let i = 0; i < 6; i++) {
+                const particle = document.createElement('div');
+                particle.style.position = 'fixed';
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                particle.style.width = '6px';
+                particle.style.height = '6px';
+                particle.style.borderRadius = '50%';
+                particle.style.backgroundColor = '#60a5fa';
+                particle.style.pointerEvents = 'none';
+                particle.style.zIndex = '9999';
+                document.body.appendChild(particle);
+
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 20 + Math.random() * 30;
+                const targetX = Math.cos(angle) * distance;
+                const targetY = Math.sin(angle) * distance;
+
+                particle.animate([
+                    { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+                    { transform: `translate(${targetX}px, ${targetY}px) scale(0)`, opacity: 0 }
+                ], {
+                    duration: 400,
+                    easing: 'cubic-bezier(0, .9, .57, 1)'
+                }).onfinish = () => particle.remove();
+            }
+        }
+
+        addTodoItemBtn.addEventListener('click', () => {
+            createTodoRow();
+        });
+
+        // Добавим парочку дефолтных пустых полей для примера
+        createTodoRow('Подготовить чертеж в CAD', false);
+        createTodoRow('Повторить формулы по сопротивлению материалов', false);
+
 
         function renderCalendar() {
             const year = currentDate.getFullYear();
@@ -312,14 +555,22 @@
             const noteText = noteInput.value.trim();
             const taskTime = timeInput.value || 'Не указано';
             const hasFile = mediaFile.files.length > 0;
+            
+            const todoRows = todoItemsContainer.querySelectorAll('.todo-item-row');
+            let todos = [];
+            todoRows.forEach(row => {
+                const text = row.querySelector('input[type="text"]').value.trim();
+                const checked = row.querySelector('input[type="checkbox"]').checked;
+                if (text) todos.push({ text, checked });
+            });
 
-            if (!noteText && !hasFile) {
-                alert('Введите текст заметки или прикрепите файл!');
+            if (!noteText && !hasFile && todos.length === 0) {
+                alert('Введите текст заметки, добавьте пункты чеклиста или прикрепите файл!');
                 return;
             }
 
             const dateString = selectedDate.toLocaleDateString('ru-RU');
-            alert(`Заметка на ${dateString} (${taskTime}) успешно сохранена и отправлена в Telegram!`);
+            alert(`Заметка и чек-лист на ${dateString} (${taskTime}) успешно сохранены и отправлены в Telegram!`);
             
             noteInput.value = '';
             mediaFile.value = '';
