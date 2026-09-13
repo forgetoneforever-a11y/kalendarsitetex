@@ -108,6 +108,12 @@
             border-radius: 8px;
             object-fit: cover;
             background: #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-align: center;
         }
         .spotify-info {
             flex: 1;
@@ -315,7 +321,6 @@
             }
         }
 
-        // Интеграция с IndexedDB для стабильного сохранения фонов после F5
         const dbPromise = indexedDB.open('OrganizerDB', 1);
         dbPromise.onupgradeneeded = (e) => {
             const db = e.target.result;
@@ -333,6 +338,7 @@
                 if (req.result) {
                     const objectUrl = URL.createObjectURL(req.result);
                     renderBackground(objectUrl);
+                    bgFileNamePreview.textContent = `Фон загружен из памяти (${req.result.name || 'файл'})`;
                 } else {
                     renderBackground(null);
                 }
@@ -392,7 +398,14 @@
 
         async function fetchSpotifyPresence() {
             try {
-                const response = await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // Тайм-аут 5 секунд
+
+                const response = await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`, {
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
                 const data = await response.json();
                 
                 if (data.success && data.data) {
@@ -406,16 +419,18 @@
                         spotifyStatusText.textContent = "Spotify не активен";
                         spotifySongTitle.textContent = "Трек не воспроизводится";
                         spotifyArtistName.textContent = "Включите музыку в Spotify";
-                        spotifyArt.src = "https://via.placeholder.com/64?text=Idle";
+                        spotifyArt.src = "";
+                        spotifyArt.textContent = "Idle";
                     }
                 } else {
                     throw new Error("Не удалось получить данные");
                 }
             } catch (err) {
-                spotifyStatusText.textContent = "Требуется авторизация";
-                spotifySongTitle.textContent = "Зайдите на discord.gg/lanyard";
-                spotifyArtistName.textContent = "Бот не видит ваш профиль";
-                spotifyArt.src = "https://via.placeholder.com/64?text=Error";
+                spotifyStatusText.textContent = "Офлайн / Ошибка сети";
+                spotifySongTitle.textContent = "Нет связи с Lanyard API";
+                spotifyArtistName.textContent = "Проверьте интернет-соединение";
+                spotifyArt.src = "";
+                spotifyArt.textContent = "Error";
             }
         }
 
