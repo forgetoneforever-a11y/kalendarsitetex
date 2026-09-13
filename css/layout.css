@@ -1,64 +1,67 @@
-/* Стили для секции заметок и календаря */
-.calendar-grid-layout {
+/* Стили для страницы настроек и элементов формы */
+.settings-card {
     display: flex;
     flex-direction: column;
     gap: 24px;
-    margin-top: 20px;
 }
 
-.notes-panel {
+.setting-item {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-}
-
-.notes-panel h3 {
-    font-size: 1.15rem;
-    font-weight: 600;
-    color: #e2e8f0;
-}
-
-.notes-panel textarea {
+    gap: 10px;
     width: 100%;
-    min-height: 120px;
+}
+
+.setting-item label {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #cbd5e1;
+}
+
+/* Текстовые инпуты */
+.setting-item input[type="text"] {
     background: rgba(15, 23, 42, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 14px 16px;
     border-radius: 12px;
-    padding: 16px;
     color: #f8fafc;
-    font-family: inherit;
-    font-size: 1rem;
-    resize: vertical;
+    font-family: monospace;
+    font-size: 0.95rem;
+    width: 100%;
     transition: all 0.2s ease;
 }
 
-.notes-panel textarea:focus {
+.setting-item input[type="text"]:focus {
     outline: none;
     border-color: #60a5fa;
     background: rgba(15, 23, 42, 0.8);
     box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
 }
 
-.btn-accent {
+/* Красивое оформление для выбора файлов (заменяем убогую системную кнопку) */
+.setting-item input[type="file"] {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px;
+    border-radius: 12px;
+    color: #94a3b8;
+    width: 100%;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.setting-item input[type="file"]::file-selector-button {
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: #ffffff;
     border: none;
-    padding: 14px 24px;
-    border-radius: 12px;
+    padding: 8px 16px;
+    border-radius: 8px;
     font-weight: 600;
-    font-size: 0.95rem;
     cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-    align-self: flex-start;
+    margin-right: 12px;
+    transition: background 0.2s ease;
 }
 
-.btn-accent:hover {
+.setting-item input[type="file"]::file-selector-button:hover {
     background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
-}
-
-.btn-accent:active {
-    transform: translateY(0);
 }
