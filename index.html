@@ -33,11 +33,51 @@
             border-color: var(--custom-glow-border, rgba(59, 130, 246, 0.5));
             box-shadow: 0 0 25px var(--custom-glow-shadow, rgba(59, 130, 246, 0.35)), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
+
+        .schedule-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr 2fr 1fr auto;
+            gap: 10px;
+            margin-bottom: 25px;
+            background: rgba(15, 23, 42, 0.6);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            align-items: center;
+        }
+        @media(max-width: 900px) {
+            .schedule-form { grid-template-columns: 1fr; }
+        }
+        .schedule-input, .schedule-select {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .schedule-input:focus, .schedule-select:focus {
+            border-color: #60a5fa;
+        }
+        .delete-btn {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.2s;
+        }
+        .delete-btn:hover {
+            background: rgba(239, 68, 68, 0.4);
+        }
     </style>
     <script>
         const savedOpacity = localStorage.getItem('appBgOpacity') ?? '0.85';
         const savedBlur = localStorage.getItem('appBgBlur') || '0';
-        const savedFont = localStorage.getItem('appFontStyle') || 'modern';
+        const savedFont = localStorage.getItem('appFontStyle'] || 'modern';
         const savedGlow = localStorage.getItem('appGlow') === 'true';
         const savedGlowColor = localStorage.getItem('appGlowColor') || 'blue';
         const savedCustomColor = localStorage.getItem('appCustomGlowColor') || '#3b82f6';
@@ -77,33 +117,39 @@
     </header>
 
     <main class="site-main">
-        <section class="card-glass">
+        <section class="card-glass" style="max-width: 950px;">
             <h1>Расписание занятий</h1>
-            <p class="subtitle">Технология машиностроения — 2 курс</p>
+            <p class="subtitle">Технология машиностроения — 2 курс (Вся неделя)</p>
             
+            <!-- Форма добавления предмета -->
+            <div class="schedule-form">
+                <select id="daySelect" class="schedule-select">
+                    <option value="Понедельник">Понедельник</option>
+                    <option value="Вторник">Вторник</option>
+                    <option value="Среда">Среда</option>
+                    <option value="Четверг">Четверг</option>
+                    <option value="Пятница">Пятница</option>
+                    <option value="Суббота">Суббота</option>
+                </select>
+                <input type="text" id="timeInput" class="schedule-input" placeholder="Время (напр. 08:30 - 10:00)">
+                <input type="text" id="subjectInput" class="schedule-input" placeholder="Название предмета">
+                <input type="text" id="roomInput" class="schedule-input" placeholder="Аудитория (напр. Ауд. 204)">
+                <button class="btn-accent" id="addSubjectBtn" style="padding: 10px 16px; border-radius: 8px; cursor: pointer;">Добавить</button>
+            </div>
+
             <div class="table-responsive">
-                <table class="shedule-table">
+                <table class="shedule-table" style="width: 100%; border-collapse: collapse;">
                     <thead>
-                        <tr>
-                            <th>День</th>
-                            <th>Время</th>
-                            <th>Предмет</th>
-                            <th>Аудитория</th>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left;">
+                            <th style="padding: 12px;">День</th>
+                            <th style="padding: 12px;">Время</th>
+                            <th style="padding: 12px;">Предмет</th>
+                            <th style="padding: 12px;">Аудитория</th>
+                            <th style="padding: 12px; text-align: right;">Действие</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>Понедельник</td>
-                            <td>08:30 - 10:00</td>
-                            <td>Технология машиностроения</td>
-                            <td>Ауд. 204</td>
-                        </tr>
-                        <tr>
-                            <td>Вторник</td>
-                            <td>10:15 - 11:45</td>
-                            <td>Инженерная графика</td>
-                            <td>Ауд. 310</td>
-                        </tr>
+                    <tbody id="scheduleTableBody">
+                        <!-- Динамически заполняется из скрипта -->
                     </tbody>
                 </table>
             </div>
@@ -111,5 +157,79 @@
     </main>
 
     <script src="./js/app-background.js"></script>
+    <script>
+        // Стандартное расписание по умолчанию, если ничего не добавлено
+        const defaultSchedule = [
+            { day: "Понедельник", time: "08:30 - 10:00", subject: "Технология машиностроения", room: "Ауд. 204" },
+            { day: "Вторник", time: "10:15 - 11:45", subject: "Инженерная графика", room: "Ауд. 310" },
+            { day: "Среда", time: "08:30 - 10:00", subject: "Сопротивление материалов", room: "Ауд. 105" },
+            { day: "Четверг", time: "10:15 - 11:45", subject: "Метрология и стандартизация", room: "Ауд. 412" },
+            { day: "Пятница", time: "08:30 - 10:00", subject: "Электротехника", room: "Ауд. 218" },
+            { day: "Суббота", time: "10:15 - 11:45", subject: "Физическая культура", room: "Спортзал" }
+        ];
+
+        let scheduleData = JSON.parse(localStorage.getItem('userScheduleData')) || defaultSchedule;
+
+        const scheduleTableBody = document.getElementById('scheduleTableBody');
+        const daySelect = document.getElementById('daySelect');
+        const timeInput = document.getElementById('timeInput');
+        const subjectInput = document.getElementById('subjectInput');
+        const roomInput = document.getElementById('roomInput');
+        const addSubjectBtn = document.getElementById('addSubjectBtn');
+
+        function renderSchedule() {
+            scheduleTableBody.innerHTML = '';
+            
+            if (scheduleData.length === 0) {
+                scheduleTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: #94a3b8;">Расписание пусто. Добавьте первый предмет выше!</td></tr>`;
+                return;
+            }
+
+            scheduleData.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
+                tr.innerHTML = `
+                    <td style="padding: 12px; font-weight: 600; color: #60a5fa;">${item.day}</td>
+                    <td style="padding: 12px; color: #cbd5e1;">${item.time}</td>
+                    <td style="padding: 12px; color: #fff;">${item.subject}</td>
+                    <td style="padding: 12px; color: #94a3b8;">${item.room}</td>
+                    <td style="padding: 12px; text-align: right;">
+                        <button class="delete-btn" onclick="deleteSubject(${index})">Удалить</button>
+                    </td>
+                `;
+                scheduleTableBody.appendChild(tr);
+            });
+        }
+
+        window.deleteSubject = function(index) {
+            scheduleData.splice(index, 1);
+            localStorage.setItem('userScheduleData', JSON.stringify(scheduleData));
+            renderSchedule();
+        }
+
+        addSubjectBtn.addEventListener('click', () => {
+            const day = daySelect.value;
+            const time = timeInput.value.trim();
+            const subject = subjectInput.value.trim();
+            const room = roomInput.value.trim();
+
+            if (!time || !subject) {
+                alert('Пожалуйста, заполните время и название предмета!');
+                return;
+            }
+
+            scheduleData.push({ day, time, subject, room: room || 'Не указана' });
+            localStorage.setItem('userScheduleData', JSON.stringify(scheduleData));
+            
+            renderSchedule();
+
+            // Очищаем поля ввода (кроме дня)
+            timeInput.value = '';
+            subjectInput.value = '';
+            roomInput.value = '';
+        });
+
+        renderSchedule();
+    </script>
 </body>
 </html>
