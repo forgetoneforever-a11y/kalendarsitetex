@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Настройки — Органайзер</title>
+    <title>Настройки — Texnikum work</title>
     
     <link rel="stylesheet" href="./css/variables.css">
     <link rel="stylesheet" href="./css/global.css">
@@ -12,6 +12,28 @@
         body.font-modern { font-family: system-ui, -apple-system, sans-serif; }
         body.font-neon { font-family: 'Courier New', Courier, monospace; letter-spacing: 0.5px; }
         body.font-retro { font-family: 'Lucida Console', Monaco, monospace; text-transform: uppercase; font-size: 0.9rem; }
+
+        .site-header {
+            position: sticky; top: 0; z-index: 50;
+            background: rgba(15, 23, 42, 0.45) !important;
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        .header-container { max-width: 1200px; margin: 0 auto; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.1rem; font-weight: 700; color: #f8fafc; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+        .nav-menu { display: flex; gap: 8px; }
+        .nav-menu a { color: #94a3b8; text-decoration: none; padding: 8px 16px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; transition: all 0.2s; }
+        .nav-menu a:hover { color: #fff; background: rgba(255, 255, 255, 0.06); }
+        .nav-menu a.active { color: #fff; background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.3); }
+
+        .card-glass, .setting-section {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(var(--card-blur, 10px));
+            -webkit-backdrop-filter: blur(var(--card-blur, 10px));
+            transition: all 0.3s ease;
+        }
 
         body.glow-enabled.glow-blue .setting-section {
             border-color: rgba(96, 165, 250, 0.5);
@@ -34,92 +56,30 @@
             box-shadow: 0 0 25px var(--custom-glow-shadow, rgba(59, 130, 246, 0.35)), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
 
-        .settings-container {
-            max-width: 850px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        .setting-section {
-            background: rgba(15, 23, 42, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 24px;
-            border-radius: 14px;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-        }
-        .setting-section h3 {
-            font-size: 1.1rem;
-            color: #f8fafc;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .setting-item {
-            margin-bottom: 16px;
-        }
-        .setting-item:last-child {
-            margin-bottom: 0;
-        }
-        .setting-item label {
-            display: block;
-            margin-bottom: 8px;
-            color: #94a3b8;
-            font-size: 0.9rem;
-        }
+        .settings-container { max-width: 850px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+        .setting-section { padding: 24px; border-radius: 14px; }
+        .setting-section h3 { font-size: 1.1rem; color: #f8fafc; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .setting-item { margin-bottom: 16px; }
+        .setting-item label { display: block; margin-bottom: 8px; color: #94a3b8; font-size: 0.9rem; }
         .setting-input, .setting-select {
-            width: 100%;
-            background: rgba(15, 23, 42, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #fff;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            outline: none;
-            transition: border-color 0.2s;
+            width: 100%; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff; padding: 12px; border-radius: 8px; font-size: 0.95rem; outline: none;
         }
-        .setting-input:focus, .setting-select:focus {
-            border-color: #60a5fa;
-        }
-        .range-slider-wrap {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .range-slider-wrap input[type="range"] {
-            flex: 1;
-            accent-color: #3b82f6;
-            cursor: pointer;
-        }
-        .range-value {
-            font-size: 0.9rem;
-            color: #60a5fa;
-            width: 45px;
-            text-align: right;
-        }
+        .setting-input:focus, .setting-select:focus { border-color: #60a5fa; }
+        .range-slider-wrap { display: flex; align-items: center; gap: 15px; }
+        .range-slider-wrap input[type="range"] { flex: 1; accent-color: #3b82f6; cursor: pointer; }
+        .range-value { font-size: 0.9rem; color: #60a5fa; width: 45px; text-align: right; }
         .file-drop-area {
-            border: 2px dashed rgba(255, 255, 255, 0.15);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            background: rgba(255, 255, 255, 0.02);
+            border: 2px dashed rgba(255, 255, 255, 0.15); padding: 20px; border-radius: 10px;
+            text-align: center; cursor: pointer; background: rgba(255, 255, 255, 0.02); transition: 0.2s;
         }
-        .file-drop-area:hover {
-            border-color: #60a5fa;
-            background: rgba(255, 255, 255, 0.05);
-        }
-        #bgFilePicker {
-            display: none;
-        }
+        .file-drop-area:hover { border-color: #60a5fa; background: rgba(255, 255, 255, 0.05); }
+        #bgFilePicker { display: none; }
     </style>
     <script>
-        // Мгновенная инициализация стилей до рендеринга страницы (убирает моргание)
         const savedOpacity = localStorage.getItem('appBgOpacity') ?? '0.85';
         const savedBlur = localStorage.getItem('appBgBlur') || '0';
+        const savedCardBlur = localStorage.getItem('appCardBlur') || '10';
         const savedFont = localStorage.getItem('appFontStyle') || 'modern';
         const savedGlow = localStorage.getItem('appGlow') === 'true';
         const savedGlowColor = localStorage.getItem('appGlowColor') || 'blue';
@@ -127,6 +87,7 @@
 
         document.documentElement.style.setProperty('--app-opacity', savedOpacity);
         document.documentElement.style.setProperty('--app-blur', savedBlur + 'px');
+        document.documentElement.style.setProperty('--card-blur', savedCardBlur + 'px');
 
         if (savedGlowColor === 'custom') {
             let r = parseInt(savedCustomColor.slice(1, 3), 16) || 59;
@@ -137,7 +98,7 @@
         }
     </script>
 </head>
-<body class="">
+<body>
     <script>
         document.body.classList.add(`font-${savedFont}`);
         if (savedGlow && savedGlowColor !== 'none') {
@@ -150,7 +111,7 @@
 
     <header class="site-header">
         <div class="header-container">
-            <a href="calendar.html" class="logo">📅 Органайзер</a>
+            <a href="calendar.html" class="logo">💻 Texnikum work</a>
             <nav class="nav-menu">
                 <a href="calendar.html">Календарь и Заметки</a>
                 <a href="index.html">Расписание</a>
@@ -161,10 +122,9 @@
 
     <main class="site-main">
         <div class="settings-container">
-            
-            <div style="margin-bottom: 10px;">
+            <div>
                 <h1 style="font-size: 1.8rem; margin-bottom: 6px;">Настройки приложения</h1>
-                <p class="subtitle" style="margin: 0;">Персонализация внешнего вида, медиа-фона и интеграций.</p>
+                <p class="subtitle" style="margin: 0;">Персонализация внешнего вида, медиа-фона и интерфейса.</p>
             </div>
 
             <div class="setting-section">
@@ -202,7 +162,7 @@
 
                     <div id="customColorWrap" style="display: none; align-items: center; gap: 10px;">
                         <input type="color" id="customColorPicker" value="#3b82f6" style="width: 45px; height: 38px; border: none; border-radius: 8px; background: none; cursor: pointer;">
-                        <span style="font-size: 0.85rem; color: #94a3b8;">Выберите свой оттенок для свечения</span>
+                        <span style="font-size: 0.85rem; color: #94a3b8;">Выберите оттенок свечения</span>
                     </div>
                 </div>
 
@@ -219,6 +179,14 @@
                     <div class="range-slider-wrap">
                         <input type="range" id="bgBlurRange" min="0" max="20" step="1" value="0">
                         <span class="range-value" id="blurVal">0px</span>
+                    </div>
+                </div>
+
+                <div class="setting-item" style="margin-top: 15px;">
+                    <label for="cardBlurRange">Размытие панелей и карточек (Glass Blur):</label>
+                    <div class="range-slider-wrap">
+                        <input type="range" id="cardBlurRange" min="0" max="25" step="1" value="10">
+                        <span class="range-value" id="cardBlurVal">10px</span>
                     </div>
                 </div>
             </div>
@@ -249,6 +217,8 @@
         const opacityVal = document.getElementById('opacityVal');
         const bgBlurRange = document.getElementById('bgBlurRange');
         const blurVal = document.getElementById('blurVal');
+        const cardBlurRange = document.getElementById('cardBlurRange');
+        const cardBlurVal = document.getElementById('cardBlurVal');
         const saveSettingsBtn = document.getElementById('saveSettingsBtn');
         const bgFilePicker = document.getElementById('bgFilePicker');
         const bgFileNamePreview = document.getElementById('bgFileNamePreview');
@@ -259,6 +229,8 @@
         opacityVal.textContent = Math.round(savedOpacity * 100) + '%';
         bgBlurRange.value = savedBlur;
         blurVal.textContent = savedBlur + 'px';
+        cardBlurRange.value = savedCardBlur;
+        cardBlurVal.textContent = savedCardBlur + 'px';
 
         if (savedGlowColor === 'custom') {
             glowColorSelect.value = 'custom';
@@ -287,19 +259,20 @@
             document.getElementById('bgContainer').style.filter = `blur(${val}px)`;
         });
 
-        let pendingBackgroundData = null;
+        cardBlurRange.addEventListener('input', (e) => {
+            const val = e.target.value;
+            cardBlurVal.textContent = val + 'px';
+            document.documentElement.style.setProperty('--card-blur', val + 'px');
+        });
 
+        let pendingBackgroundData = null;
         bgFilePicker.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
                 bgFileNamePreview.textContent = `Выбран файл: ${file.name}`;
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    pendingBackgroundData = {
-                        data: event.target.result,
-                        type: file.type,
-                        name: file.name
-                    };
+                    pendingBackgroundData = { data: event.target.result, type: file.type, name: file.name };
                     renderBackground(pendingBackgroundData.data, pendingBackgroundData.type);
                 };
                 reader.readAsDataURL(file);
@@ -308,18 +281,9 @@
 
         glowColorSelect.addEventListener('change', (e) => {
             const val = e.target.value;
-            if (val === 'custom') {
-                customColorWrap.style.display = 'flex';
-            } else {
-                customColorWrap.style.display = 'none';
-            }
-            if (val === 'none') glowCheckbox.checked = false;
-            else glowCheckbox.checked = true;
+            customColorWrap.style.display = (val === 'custom') ? 'flex' : 'none';
+            glowCheckbox.checked = (val !== 'none');
             updateBodyGlowClasses(val, glowCheckbox.checked);
-        });
-
-        customColorPicker.addEventListener('input', (e) => {
-            updateBodyGlowClasses('custom', glowCheckbox.checked);
         });
 
         glowCheckbox.addEventListener('change', (e) => {
@@ -332,13 +296,25 @@
             localStorage.setItem('appGlowColor', glowColorSelect.value);
             localStorage.setItem('appBgOpacity', overlayOpacityRange.value);
             localStorage.setItem('appBgBlur', bgBlurRange.value);
+            localStorage.setItem('appCardBlur', cardBlurRange.value);
             
             if (glowColorSelect.value === 'custom') {
                 localStorage.setItem('appCustomGlowColor', customColorPicker.value);
             }
 
             if (pendingBackgroundData) {
-                await saveBackgroundToDB(pendingBackgroundData);
+                return new Promise((resolve) => {
+                    const dbOpen = indexedDB.open('OrganizerDB', 2);
+                    dbOpen.onsuccess = () => {
+                        const db = dbOpen.result;
+                        const tx = db.transaction('files', 'readwrite');
+                        tx.objectStore('files').put(pendingBackgroundData, 'backgroundData');
+                        tx.oncomplete = () => {
+                            alert('Настройки и фоновый файл успешно сохранены!');
+                            location.reload();
+                        };
+                    };
+                });
             }
 
             alert('Настройки успешно сохранены!');
