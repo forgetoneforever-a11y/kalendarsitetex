@@ -1,25 +1,55 @@
-// Молниеносное появление страницы (50мс)
-document.addEventListener("DOMContentLoaded", () => {
-    document.body.style.opacity = "0";
-    document.body.style.transition = "opacity 0.05s ease-out";
-    setTimeout(() => {
-        document.body.style.opacity = "1";
-    }, 10);
+// Показываем красивый индикатор загрузки («Ожидание...») при переходе
+(function() {
+    // Создаем элемент лоадера прямо в DOM
+    const loader = document.createElement('div');
+    loader.id = 'pageTransitionLoader';
+    loader.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #60a5fa; border-radius: 50%; animation: spinLoader 0.6s linear infinite;"></div>
+            <span style="font-size: 0.9rem; color: #94a3b8; font-family: system-ui, sans-serif; letter-spacing: 0.5px;">Загрузка...</span>
+        </div>
+        <style>
+            @keyframes spinLoader { to { transform: rotate(360deg); } }
+        </style>
+    `;
+    loader.style.cssText = `
+        position: fixed;
+        inset: 0;
+        background: rgba(11, 15, 25, 0.7);
+        backdrop-filter: blur(6px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+    `;
+    document.addEventListener("DOMContentLoaded", () => {
+        document.body.appendChild(loader);
 
-    // Моментальный перехват кликов для быстрого перехода без задержек
-    document.querySelectorAll('.nav-menu a, .logo').forEach(link => {
-        link.addEventListener('click', (e) => {
-            const href = link.getAttribute('href');
-            if (!href || href.startsWith('#') || href.startsWith('http')) return;
-
-            e.preventDefault();
-            document.body.style.opacity = "0";
-            setTimeout(() => {
-                window.location.href = href;
-            }, 50); // Мгновенный переход за 50мс
-        });
+        // Плавное появление страницы при загрузке
+        setTimeout(() => {
+            loader.style.opacity = "0";
+        }, 100);
     });
-});
+
+    // Перехват кликов по меню с активацией лоадера
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('.nav-menu a, .logo');
+        if (!link) return;
+
+        const href = link.getAttribute('href');
+        if (!href || href.startsWith('#') || href.startsWith('http')) return;
+
+        e.preventDefault();
+        loader.style.opacity = "1"; // Мгновенно показываем красивый экран ожидания
+        
+        setTimeout(() => {
+            window.location.href = href;
+        }, 120); // Небольшая задержка для плавности анимации
+    });
+})();
 
 // Глобальная отрисовка фона с сохранением времени видео в sessionStorage
 function renderBackground(dataUrl, fileType = '') {
@@ -39,7 +69,6 @@ function renderBackground(dataUrl, fileType = '') {
             video.playsInline = true;
             video.style.cssText = 'width: 100%; height: 100%; object-fit: cover; transform: scale(1.02);';
             
-            // Восстанавливаем то же время воспроизведения при переходе между вкладками
             const savedTime = sessionStorage.getItem('bgVideoTime');
             if (savedTime) {
                 video.currentTime = parseFloat(savedTime);
