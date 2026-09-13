@@ -1,25 +1,58 @@
-// Глобальный скрипт фонов для мгновенной синхронизации без моргания
+// Плавное появление страницы при загрузке
+document.addEventListener("DOMContentLoaded", () => {
+    document.body.style.opacity = "0";
+    document.body.style.transition = "opacity 0.35s ease-in-out";
+    setTimeout(() => {
+        document.body.style.opacity = "1";
+    }, 50);
+
+    // Перехват кликов по меню для плавного перехода (Fade-out)
+    document.querySelectorAll('.nav-menu a, .logo').forEach(link => {
+        link.addEventListener('click', (e) => {
+            const href = link.getAttribute('href');
+            // Игнорируем внешние ссылки или якоря
+            if (!href || href.startsWith('#') || href.startsWith('http')) return;
+
+            e.preventDefault();
+            document.body.style.opacity = "0";
+            setTimeout(() => {
+                window.location.href = href;
+            }, 350); // Время совпадает с transition
+        });
+    });
+});
+
+// Глобальная отрисовка фона с сохранением времени видео в sessionStorage
 function renderBackground(dataUrl, fileType = '') {
     const bgContainer = document.getElementById('bgContainer');
     if (!bgContainer) return;
-    
-    // Если фон уже отрисован и это то же самое видео, не пересоздаем его (избегаем перезапуска видео)
-    if (bgContainer.dataset.loaded === "true" && bgContainer.dataset.src === dataUrl) return;
 
     bgContainer.innerHTML = '';
-    bgContainer.dataset.loaded = "true";
-    bgContainer.dataset.src = dataUrl || "default";
 
     if (dataUrl) {
         const isVideo = fileType.startsWith('video') || (typeof dataUrl === 'string' && (dataUrl.includes('data:video') || dataUrl.endsWith('.mp4')));
+        
         if (isVideo) {
             const video = document.createElement('video');
             video.src = dataUrl;
-            video.autoplay = true;
             video.muted = true;
             video.loop = true;
             video.playsInline = true;
             video.style.cssText = 'width: 100%; height: 100%; object-fit: cover; transform: scale(1.02);';
+            
+            // Восстанавливаем то же время воспроизведения при переходе между вкладками
+            const savedTime = sessionStorage.getItem('bgVideoTime');
+            if (savedTime) {
+                video.currentTime = parseFloat(savedTime);
+            }
+
+            video.play().catch(() => {});
+
+            // Каждую секунду запоминаем текущую секунду видео
+            video.addEventListener('timeupdate', () => {
+                sessionStorage.setItem('bgVideoTime', video.currentTime);
+            });
+
             bgContainer.appendChild(video);
         } else {
             const img = document.createElement('img');
@@ -30,11 +63,21 @@ function renderBackground(dataUrl, fileType = '') {
     } else {
         const video = document.createElement('video');
         video.src = 'assets/background.mp4';
-        video.autoplay = true;
         video.muted = true;
         video.loop = true;
         video.playsInline = true;
         video.style.cssText = 'width: 100%; height: 100%; object-fit: cover; transform: scale(1.02);';
+        
+        const savedTime = sessionStorage.getItem('bgVideoTime');
+        if (savedTime) {
+            video.currentTime = parseFloat(savedTime);
+        }
+        video.play().catch(() => {});
+
+        video.addEventListener('timeupdate', () => {
+            sessionStorage.setItem('bgVideoTime', video.currentTime);
+        });
+
         bgContainer.appendChild(video);
     }
 }
@@ -56,7 +99,7 @@ async function saveBackgroundToDB(bgData) {
     });
 }
 
-// Запускаем чтение из IndexedDB немедленно
+// Загрузка фона из IndexedDB при старте любой страницы
 (function loadBackgroundFromDB() {
     const dbOpen = indexedDB.open('OrganizerDB', 2);
     dbOpen.onsuccess = () => {
