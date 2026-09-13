@@ -8,6 +8,37 @@
     <link rel="stylesheet" href="./css/variables.css">
     <link rel="stylesheet" href="./css/global.css">
     <link rel="stylesheet" href="./css/layout.css">
+    <style>
+        .setting-item select {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 14px 16px;
+            border-radius: 12px;
+            color: #f8fafc;
+            font-size: 0.95rem;
+            width: 100%;
+            cursor: pointer;
+        }
+        .setting-item select:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
+        }
+        .toggle-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            color: #f8fafc;
+            font-size: 0.95rem;
+        }
+        .toggle-wrapper input {
+            width: 20px;
+            height: 20px;
+            accent-color: #3b82f6;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 
@@ -35,13 +66,50 @@
                 <label>Telegram ID администраторов / получателя:</label>
                 <input type="text" value="1320294475, 5619340928, 8870678654" readonly>
             </div>
+
+            <div class="setting-item">
+                <label>Стиль шрифта интерфейса:</label>
+                <select id="fontStyleSelect">
+                    <option value="modern">Строгий (Modern Sans)</option>
+                    <option value="neon">Неоновый (Cyberpunk / Tech)</option>
+                    <option value="retro">Ретро (Terminal / Arcade)</option>
+                </select>
+            </div>
+
+            <div class="setting-item">
+                <label>Эффект свечения (Neon Glow):</label>
+                <label class="toggle-wrapper">
+                    <input type="checkbox" id="glowToggle"> Включить атмосферное свечение карточек и календаря
+                </label>
+            </div>
             
             <div class="setting-item">
                 <label>Фоновое MP4 видео:</label>
                 <input type="file" accept="video/mp4">
             </div>
+
+            <button class="btn-accent" id="saveSettingsBtn">Сохранить настройки</button>
         </section>
     </main>
 
+    <script>
+        const fontStyleSelect = document.getElementById('fontStyleSelect');
+        const glowToggle = document.getElementById('glowToggle');
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+
+        // Загрузка сохраненных настроек
+        if (localStorage.getItem('appFontStyle')) {
+            fontStyleSelect.value = localStorage.getItem('appFontStyle');
+        }
+        if (localStorage.getItem('appGlow') === 'true') {
+            glowToggle.checked = true;
+        }
+
+        saveSettingsBtn.addEventListener('click', () => {
+            localStorage.setItem('appFontStyle', fontStyleSelect.value);
+            localStorage.setItem('appGlow', glowToggle.checked);
+            alert('Настройки успешно сохранены!');
+        });
+    </script>
 </body>
 </html>
