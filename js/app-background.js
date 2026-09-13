@@ -1,12 +1,12 @@
-// Быстрое появление страницы при загрузке (150мс)
+// Молниеносное появление страницы (50мс)
 document.addEventListener("DOMContentLoaded", () => {
     document.body.style.opacity = "0";
-    document.body.style.transition = "opacity 0.15s ease-in-out";
+    document.body.style.transition = "opacity 0.05s ease-out";
     setTimeout(() => {
         document.body.style.opacity = "1";
-    }, 20);
+    }, 10);
 
-    // Моментальный перехват кликов по меню для быстрого перехода
+    // Моментальный перехват кликов для быстрого перехода без задержек
     document.querySelectorAll('.nav-menu a, .logo').forEach(link => {
         link.addEventListener('click', (e) => {
             const href = link.getAttribute('href');
@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.body.style.opacity = "0";
             setTimeout(() => {
                 window.location.href = href;
-            }, 150); // Молниеносный переход за 150мс
+            }, 50); // Мгновенный переход за 50мс
         });
     });
 });
