@@ -34,51 +34,135 @@
             box-shadow: 0 0 25px var(--custom-glow-shadow, rgba(59, 130, 246, 0.35)), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
 
-        .schedule-form {
-            display: grid;
-            grid-template-columns: 1fr 1fr 2fr 1fr auto;
-            gap: 10px;
-            margin-bottom: 25px;
-            background: rgba(15, 23, 42, 0.6);
-            padding: 16px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+        .schedule-header-row {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
+            margin-bottom: 24px;
         }
-        @media(max-width: 900px) {
-            .schedule-form { grid-template-columns: 1fr; }
+        .add-subject-btn {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            transition: all 0.2s;
         }
-        .schedule-input, .schedule-select {
-            background: rgba(15, 23, 42, 0.8);
+        .add-subject-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Модальное окно */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(11, 15, 25, 0.75);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+        .modal-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 30px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            transform: scale(0.95);
+            transition: transform 0.2s ease;
+        }
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+        .modal-title {
+            font-size: 1.3rem;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+        .modal-field {
+            margin-bottom: 15px;
+        }
+        .modal-field label {
+            display: block;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-bottom: 6px;
+        }
+        .modal-input, .modal-select {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.9);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: #fff;
-            padding: 10px 12px;
+            padding: 12px;
             border-radius: 8px;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             outline: none;
         }
-        .schedule-input:focus, .schedule-select:focus {
+        .modal-input:focus, .modal-select:focus {
             border-color: #60a5fa;
         }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        .modal-btn-save {
+            flex: 1;
+            background: #3b82f6;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .modal-btn-cancel {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            color: #cbd5e1;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
         .delete-btn {
-            background: rgba(239, 68, 68, 0.2);
+            background: rgba(239, 68, 68, 0.15);
             color: #fca5a5;
             border: none;
-            padding: 6px 10px;
+            padding: 6px 12px;
             border-radius: 6px;
             cursor: pointer;
             font-size: 0.8rem;
             transition: background 0.2s;
         }
         .delete-btn:hover {
-            background: rgba(239, 68, 68, 0.4);
+            background: rgba(239, 68, 68, 0.3);
         }
     </style>
     <script>
         const savedOpacity = localStorage.getItem('appBgOpacity') ?? '0.85';
         const savedBlur = localStorage.getItem('appBgBlur') || '0';
-        const savedFont = localStorage.getItem('appFontStyle'] || 'modern';
-        const savedGlow = localStorage.getItem('appGlow') === 'true';
+        const savedFont = localStorage.getItem('appFontStyle') || 'modern';
+        const savedGlow = localStorage.getItem('appGlow'] === 'true';
         const savedGlowColor = localStorage.getItem('appGlowColor') || 'blue';
         const savedCustomColor = localStorage.getItem('appCustomGlowColor') || '#3b82f6';
 
@@ -118,12 +202,41 @@
 
     <main class="site-main">
         <section class="card-glass" style="max-width: 950px;">
-            <h1>Расписание занятий</h1>
-            <p class="subtitle">Технология машиностроения — 2 курс (Вся неделя)</p>
+            <div class="schedule-header-row">
+                <div>
+                    <h1>Расписание занятий</h1>
+                    <p class="subtitle" style="margin: 0;">Технология машиностроения — 2 курс (Вся неделя)</p>
+                </div>
+                <button class="add-subject-btn" id="openModalBtn">➕ Добавить предмет</button>
+            </div>
             
-            <!-- Форма добавления предмета -->
-            <div class="schedule-form">
-                <select id="daySelect" class="schedule-select">
+            <div class="table-responsive">
+                <table class="shedule-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left;">
+                            <th style="padding: 12px; color: #94a3b8;">ДЕНЬ</th>
+                            <th style="padding: 12px; color: #94a3b8;">ВРЕМЯ</th>
+                            <th style="padding: 12px; color: #94a3b8;">ПРЕДМЕТ</th>
+                            <th style="padding: 12px; color: #94a3b8;">АУДИТОРИЯ</th>
+                            <th style="padding: 12px; color: #94a3b8; text-align: right;">ДЕЙСТВИЕ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scheduleTableBody">
+                        <!-- Динамически заполняется -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Модальное окно добавления предмета -->
+    <div class="modal-overlay" id="subjectModal">
+        <div class="modal-card">
+            <h3 class="modal-title">Добавить новую пару</h3>
+            
+            <div class="modal-field">
+                <label>День недели:</label>
+                <select id="modalDay" class="modal-select">
                     <option value="Понедельник">Понедельник</option>
                     <option value="Вторник">Вторник</option>
                     <option value="Среда">Среда</option>
@@ -131,34 +244,32 @@
                     <option value="Пятница">Пятница</option>
                     <option value="Суббота">Суббота</option>
                 </select>
-                <input type="text" id="timeInput" class="schedule-input" placeholder="Время (напр. 08:30 - 10:00)">
-                <input type="text" id="subjectInput" class="schedule-input" placeholder="Название предмета">
-                <input type="text" id="roomInput" class="schedule-input" placeholder="Аудитория (напр. Ауд. 204)">
-                <button class="btn-accent" id="addSubjectBtn" style="padding: 10px 16px; border-radius: 8px; cursor: pointer;">Добавить</button>
             </div>
 
-            <div class="table-responsive">
-                <table class="shedule-table" style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left;">
-                            <th style="padding: 12px;">День</th>
-                            <th style="padding: 12px;">Время</th>
-                            <th style="padding: 12px;">Предмет</th>
-                            <th style="padding: 12px;">Аудитория</th>
-                            <th style="padding: 12px; text-align: right;">Действие</th>
-                        </tr>
-                    </thead>
-                    <tbody id="scheduleTableBody">
-                        <!-- Динамически заполняется из скрипта -->
-                    </tbody>
-                </table>
+            <div class="modal-field">
+                <label>Время проведения:</label>
+                <input type="text" id="modalTime" class="modal-input" placeholder="Напр. 08:30 - 10:00">
             </div>
-        </section>
-    </main>
+
+            <div class="modal-field">
+                <label>Название предмета:</label>
+                <input type="text" id="modalSubject" class="modal-input" placeholder="Напр. Технология машиностроения">
+            </div>
+
+            <div class="modal-field">
+                <label>Аудитория:</label>
+                <input type="text" id="modalRoom" class="modal-input" placeholder="Напр. Ауд. 204">
+            </div>
+
+            <div class="modal-actions">
+                <button class="modal-btn-cancel" id="closeModalBtn">Отмена</button>
+                <button class="modal-btn-save" id="saveSubjectBtn">Добавить в расписание</button>
+            </div>
+        </div>
+    </div>
 
     <script src="./js/app-background.js"></script>
     <script>
-        // Стандартное расписание по умолчанию, если ничего не добавлено
         const defaultSchedule = [
             { day: "Понедельник", time: "08:30 - 10:00", subject: "Технология машиностроения", room: "Ауд. 204" },
             { day: "Вторник", time: "10:15 - 11:45", subject: "Инженерная графика", room: "Ауд. 310" },
@@ -171,17 +282,28 @@
         let scheduleData = JSON.parse(localStorage.getItem('userScheduleData')) || defaultSchedule;
 
         const scheduleTableBody = document.getElementById('scheduleTableBody');
-        const daySelect = document.getElementById('daySelect');
-        const timeInput = document.getElementById('timeInput');
-        const subjectInput = document.getElementById('subjectInput');
-        const roomInput = document.getElementById('roomInput');
-        const addSubjectBtn = document.getElementById('addSubjectBtn');
+        const subjectModal = document.getElementById('subjectModal');
+        const openModalBtn = document.getElementById('openModalBtn');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const saveSubjectBtn = document.getElementById('saveSubjectBtn');
+
+        const modalDay = document.getElementById('modalDay');
+        const modalTime = document.getElementById('modalTime');
+        const modalSubject = document.getElementById('modalSubject');
+        const modalRoom = document.getElementById('modalRoom');
+
+        openModalBtn.addEventListener('click', () => subjectModal.classList.add('active'));
+        closeModalBtn.addEventListener('click', () => subjectModal.classList.remove('active'));
+        
+        subjectModal.addEventListener('click', (e) => {
+            if (e.target === subjectModal) subjectModal.classList.remove('active');
+        });
 
         function renderSchedule() {
             scheduleTableBody.innerHTML = '';
             
             if (scheduleData.length === 0) {
-                scheduleTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: #94a3b8;">Расписание пусто. Добавьте первый предмет выше!</td></tr>`;
+                scheduleTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 25px; color: #94a3b8;">Расписание пусто. Нажмите кнопку добавления выше!</td></tr>`;
                 return;
             }
 
@@ -189,11 +311,11 @@
                 const tr = document.createElement('tr');
                 tr.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
                 tr.innerHTML = `
-                    <td style="padding: 12px; font-weight: 600; color: #60a5fa;">${item.day}</td>
-                    <td style="padding: 12px; color: #cbd5e1;">${item.time}</td>
-                    <td style="padding: 12px; color: #fff;">${item.subject}</td>
-                    <td style="padding: 12px; color: #94a3b8;">${item.room}</td>
-                    <td style="padding: 12px; text-align: right;">
+                    <td style="padding: 14px 12px; font-weight: 600; color: #60a5fa;">${item.day}</td>
+                    <td style="padding: 14px 12px; color: #cbd5e1;">${item.time}</td>
+                    <td style="padding: 14px 12px; color: #fff;">${item.subject}</td>
+                    <td style="padding: 14px 12px; color: #94a3b8;">${item.room}</td>
+                    <td style="padding: 14px 12px; text-align: right;">
                         <button class="delete-btn" onclick="deleteSubject(${index})">Удалить</button>
                     </td>
                 `;
@@ -207,14 +329,14 @@
             renderSchedule();
         }
 
-        addSubjectBtn.addEventListener('click', () => {
-            const day = daySelect.value;
-            const time = timeInput.value.trim();
-            const subject = subjectInput.value.trim();
-            const room = roomInput.value.trim();
+        saveSubjectBtn.addEventListener('click', () => {
+            const day = modalDay.value;
+            const time = modalTime.value.trim();
+            const subject = modalSubject.value.trim();
+            const room = modalRoom.value.trim();
 
             if (!time || !subject) {
-                alert('Пожалуйста, заполните время и название предмета!');
+                alert('Пожалуйста, укажите время и название предмета!');
                 return;
             }
 
@@ -222,11 +344,12 @@
             localStorage.setItem('userScheduleData', JSON.stringify(scheduleData));
             
             renderSchedule();
+            subjectModal.classList.remove('active');
 
-            // Очищаем поля ввода (кроме дня)
-            timeInput.value = '';
-            subjectInput.value = '';
-            roomInput.value = '';
+            // Очищаем поля
+            modalTime.value = '';
+            modalSubject.value = '';
+            modalRoom.value = '';
         });
 
         renderSchedule();
