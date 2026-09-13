@@ -1,9 +1,8 @@
 :root {
-    --bg-glass: rgba(18, 18, 24, 0.75);
-    --border-glass: rgba(255, 255, 255, 0.1);
+    --bg-glass: rgba(30, 41, 59, 0.5);
+    --border-glass: rgba(255, 255, 255, 0.08);
     --text-color: #f8fafc;
     --text-muted: #94a3b8;
     --accent-color: #3b82f6;
-    --accent-hover: #2563eb;
-    --radius: 16px;
+    --accent-hover: #60a5fa;
 }
