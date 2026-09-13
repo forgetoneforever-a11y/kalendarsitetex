@@ -1,23 +1,22 @@
-// Плавное появление страницы при загрузке
+// Быстрое появление страницы при загрузке (150мс)
 document.addEventListener("DOMContentLoaded", () => {
     document.body.style.opacity = "0";
-    document.body.style.transition = "opacity 0.35s ease-in-out";
+    document.body.style.transition = "opacity 0.15s ease-in-out";
     setTimeout(() => {
         document.body.style.opacity = "1";
-    }, 50);
+    }, 20);
 
-    // Перехват кликов по меню для плавного перехода (Fade-out)
+    // Моментальный перехват кликов по меню для быстрого перехода
     document.querySelectorAll('.nav-menu a, .logo').forEach(link => {
         link.addEventListener('click', (e) => {
             const href = link.getAttribute('href');
-            // Игнорируем внешние ссылки или якоря
             if (!href || href.startsWith('#') || href.startsWith('http')) return;
 
             e.preventDefault();
             document.body.style.opacity = "0";
             setTimeout(() => {
                 window.location.href = href;
-            }, 350); // Время совпадает с transition
+            }, 150); // Молниеносный переход за 150мс
         });
     });
 });
@@ -48,7 +47,6 @@ function renderBackground(dataUrl, fileType = '') {
 
             video.play().catch(() => {});
 
-            // Каждую секунду запоминаем текущую секунду видео
             video.addEventListener('timeupdate', () => {
                 sessionStorage.setItem('bgVideoTime', video.currentTime);
             });
