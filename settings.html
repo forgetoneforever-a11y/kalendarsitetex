@@ -290,7 +290,7 @@
         function renderBackground(source) {
             bgContainer.innerHTML = '';
             if (source) {
-                if (source.type && source.type.startsWith('video') || source.endsWith('.mp4')) {
+                if (source.type && source.type.startsWith('video') || (typeof source === 'string' && source.endsWith('.mp4'))) {
                     const video = document.createElement('video');
                     video.src = source.data || source;
                     video.autoplay = true;
@@ -315,17 +315,38 @@
             }
         }
 
-        const savedBg = localStorage.getItem('appBackgroundPath');
-        renderBackground(savedBg);
+        // Интеграция с IndexedDB для стабильного сохранения фонов после F5
+        const dbPromise = indexedDB.open('OrganizerDB', 1);
+        dbPromise.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('files')) {
+                db.createObjectStore('files');
+            }
+        };
 
-        let tempBgValue = savedBg;
+        dbPromise.onsuccess = () => {
+            const db = dbPromise.result;
+            const tx = db.transaction('files', 'readonly');
+            const store = tx.objectStore('files');
+            const req = store.get('background');
+            req.onsuccess = () => {
+                if (req.result) {
+                    const objectUrl = URL.createObjectURL(req.result);
+                    renderBackground(objectUrl);
+                } else {
+                    renderBackground(null);
+                }
+            };
+        };
+
+        let selectedFile = null;
 
         bgFilePicker.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
+                selectedFile = file;
                 bgFileNamePreview.textContent = `Выбран файл: ${file.name}`;
                 const objectUrl = URL.createObjectURL(file);
-                tempBgValue = objectUrl;
                 renderBackground(objectUrl);
             }
         });
@@ -343,7 +364,7 @@
             }
         });
 
-        saveSettingsBtn.addEventListener('click', () => {
+        saveSettingsBtn.addEventListener('click', async () => {
             localStorage.setItem('appFontStyle', fontSelect.value);
             localStorage.setItem('appGlow', glowCheckbox.checked);
             localStorage.setItem('appGlowColor', glowColorSelect.value);
@@ -352,8 +373,11 @@
                 localStorage.setItem('appCustomGlowColor', customColorPicker.value);
             }
 
-            if (tempBgValue) {
-                localStorage.setItem('appBackgroundPath', tempBgValue);
+            if (selectedFile) {
+                const db = dbPromise.result;
+                const tx = db.transaction('files', 'readwrite');
+                const store = tx.objectStore('files');
+                store.put(selectedFile, 'background');
             }
 
             alert('Настройки успешно сохранены!');
