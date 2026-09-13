@@ -13,23 +13,28 @@
         body.font-neon { font-family: 'Courier New', Courier, monospace; letter-spacing: 0.5px; }
         body.font-retro { font-family: 'Lucida Console', Monaco, monospace; text-transform: uppercase; font-size: 0.9rem; }
 
-        body.glow-enabled.glow-blue .card-glass {
+        body.glow-enabled.glow-blue .card-glass,
+        body.glow-enabled.glow-blue .schedule-day-card {
             border-color: rgba(96, 165, 250, 0.5);
             box-shadow: 0 0 25px rgba(59, 130, 246, 0.35), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
-        body.glow-enabled.glow-purple .card-glass {
+        body.glow-enabled.glow-purple .card-glass,
+        body.glow-enabled.glow-purple .schedule-day-card {
             border-color: rgba(192, 132, 252, 0.5);
             box-shadow: 0 0 25px rgba(168, 85, 247, 0.35), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
-        body.glow-enabled.glow-green .card-glass {
+        body.glow-enabled.glow-green .card-glass,
+        body.glow-enabled.glow-green .schedule-day-card {
             border-color: rgba(74, 222, 128, 0.5);
             box-shadow: 0 0 25px rgba(34, 197, 94, 0.35), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
-        body.glow-enabled.glow-pink .card-glass {
+        body.glow-enabled.glow-pink .card-glass,
+        body.glow-enabled.glow-pink .schedule-day-card {
             border-color: rgba(244, 114, 182, 0.5);
             box-shadow: 0 0 25px rgba(236, 72, 153, 0.35), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
-        body.glow-enabled.glow-custom .card-glass {
+        body.glow-enabled.glow-custom .card-glass,
+        body.glow-enabled.glow-custom .schedule-day-card {
             border-color: var(--custom-glow-border, rgba(59, 130, 246, 0.5));
             box-shadow: 0 0 25px var(--custom-glow-shadow, rgba(59, 130, 246, 0.35)), 0 20px 50px rgba(0, 0, 0, 0.4) !important;
         }
@@ -58,6 +63,77 @@
         .add-subject-btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Сетка карточек по дням в строчку */
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .schedule-day-card {
+            background: rgba(15, 23, 42, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .day-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #60a5fa;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .lesson-item {
+            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            position: relative;
+        }
+        .lesson-time {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+        .lesson-name {
+            font-size: 0.95rem;
+            color: #fff;
+            font-weight: 500;
+        }
+        .lesson-room {
+            font-size: 0.8rem;
+            color: #38bdf8;
+        }
+        .lesson-delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: color 0.2s;
+        }
+        .lesson-delete-btn:hover {
+            color: #ef4444;
+        }
+        .no-lessons {
+            font-size: 0.85rem;
+            color: #64748b;
+            font-style: italic;
+            text-align: center;
+            padding: 10px 0;
         }
 
         /* Модальное окно */
@@ -143,26 +219,12 @@
             font-weight: 600;
             cursor: pointer;
         }
-
-        .delete-btn {
-            background: rgba(239, 68, 68, 0.15);
-            color: #fca5a5;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: background 0.2s;
-        }
-        .delete-btn:hover {
-            background: rgba(239, 68, 68, 0.3);
-        }
     </style>
     <script>
         const savedOpacity = localStorage.getItem('appBgOpacity') ?? '0.85';
         const savedBlur = localStorage.getItem('appBgBlur') || '0';
         const savedFont = localStorage.getItem('appFontStyle') || 'modern';
-        const savedGlow = localStorage.getItem('appGlow'] === 'true';
+        const savedGlow = localStorage.getItem('appGlow') === 'true';
         const savedGlowColor = localStorage.getItem('appGlowColor') || 'blue';
         const savedCustomColor = localStorage.getItem('appCustomGlowColor') || '#3b82f6';
 
@@ -201,7 +263,7 @@
     </header>
 
     <main class="site-main">
-        <section class="card-glass" style="max-width: 950px;">
+        <section class="card-glass" style="max-width: 1200px;">
             <div class="schedule-header-row">
                 <div>
                     <h1>Расписание занятий</h1>
@@ -210,21 +272,9 @@
                 <button class="add-subject-btn" id="openModalBtn">➕ Добавить предмет</button>
             </div>
             
-            <div class="table-responsive">
-                <table class="shedule-table" style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left;">
-                            <th style="padding: 12px; color: #94a3b8;">ДЕНЬ</th>
-                            <th style="padding: 12px; color: #94a3b8;">ВРЕМЯ</th>
-                            <th style="padding: 12px; color: #94a3b8;">ПРЕДМЕТ</th>
-                            <th style="padding: 12px; color: #94a3b8;">АУДИТОРИЯ</th>
-                            <th style="padding: 12px; color: #94a3b8; text-align: right;">ДЕЙСТВИЕ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="scheduleTableBody">
-                        <!-- Динамически заполняется -->
-                    </tbody>
-                </table>
+            <!-- Контейнер сетки дней недели в строчку -->
+            <div class="schedule-grid" id="scheduleGridContainer">
+                <!-- Карточки дней генерируются динамически -->
             </div>
         </section>
     </main>
@@ -263,7 +313,7 @@
 
             <div class="modal-actions">
                 <button class="modal-btn-cancel" id="closeModalBtn">Отмена</button>
-                <button class="modal-btn-save" id="saveSubjectBtn">Добавить в расписание</button>
+                <button class="modal-btn-save" id="saveSubjectBtn">Добавить</button>
             </div>
         </div>
     </div>
@@ -281,7 +331,7 @@
 
         let scheduleData = JSON.parse(localStorage.getItem('userScheduleData')) || defaultSchedule;
 
-        const scheduleTableBody = document.getElementById('scheduleTableBody');
+        const scheduleGridContainer = document.getElementById('scheduleGridContainer');
         const subjectModal = document.getElementById('subjectModal');
         const openModalBtn = document.getElementById('openModalBtn');
         const closeModalBtn = document.getElementById('closeModalBtn');
@@ -299,27 +349,46 @@
             if (e.target === subjectModal) subjectModal.classList.remove('active');
         });
 
-        function renderSchedule() {
-            scheduleTableBody.innerHTML = '';
-            
-            if (scheduleData.length === 0) {
-                scheduleTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 25px; color: #94a3b8;">Расписание пусто. Нажмите кнопку добавления выше!</td></tr>`;
-                return;
-            }
+        const daysOfWeek = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"];
 
-            scheduleData.forEach((item, index) => {
-                const tr = document.createElement('tr');
-                tr.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
-                tr.innerHTML = `
-                    <td style="padding: 14px 12px; font-weight: 600; color: #60a5fa;">${item.day}</td>
-                    <td style="padding: 14px 12px; color: #cbd5e1;">${item.time}</td>
-                    <td style="padding: 14px 12px; color: #fff;">${item.subject}</td>
-                    <td style="padding: 14px 12px; color: #94a3b8;">${item.room}</td>
-                    <td style="padding: 14px 12px; text-align: right;">
-                        <button class="delete-btn" onclick="deleteSubject(${index})">Удалить</button>
-                    </td>
-                `;
-                scheduleTableBody.appendChild(tr);
+        function renderSchedule() {
+            scheduleGridContainer.innerHTML = '';
+
+            daysOfWeek.forEach(dayName => {
+                const card = document.createElement('div');
+                card.className = 'schedule-day-card';
+
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'day-title';
+                dayHeader.innerHTML = `<span>${dayName}</span>`;
+                card.appendChild(dayHeader);
+
+                // Фильтруем предметы для текущего дня
+                const dayLessons = scheduleData.filter(item => item.day === dayName);
+
+                if (dayLessons.length === 0) {
+                    const emptyEl = document.createElement('div');
+                    emptyEl.className = 'no-lessons';
+                    emptyEl.textContent = 'Нет пар';
+                    card.appendChild(emptyEl);
+                } else {
+                    dayLessons.forEach((lesson) => {
+                        // Находим реальный индекс предмета в глобальном массиве для удаления
+                        const globalIndex = scheduleData.indexOf(lesson);
+
+                        const lessonEl = document.createElement('div');
+                        lessonEl.className = 'lesson-item';
+                        lessonEl.innerHTML = `
+                            <span class="lesson-time">⏰ ${lesson.time}</span>
+                            <span class="lesson-name">${lesson.subject}</span>
+                            <span class="lesson-room">📍 ${lesson.room}</span>
+                            <button class="lesson-delete-btn" onclick="deleteSubject(${globalIndex})" title="Удалить предмет">✕</button>
+                        `;
+                        card.appendChild(lessonEl);
+                    });
+                }
+
+                scheduleGridContainer.appendChild(card);
             });
         }
 
@@ -346,7 +415,6 @@
             renderSchedule();
             subjectModal.classList.remove('active');
 
-            // Очищаем поля
             modalTime.value = '';
             modalSubject.value = '';
             modalRoom.value = '';
