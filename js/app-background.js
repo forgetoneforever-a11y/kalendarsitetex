@@ -1,40 +1,109 @@
-// Показываем красивый индикатор загрузки («Ожидание...») при переходе
+// Потрясающая киберпанк-анимация загрузки при переходе между вкладками
 (function() {
-    // Создаем элемент лоадера прямо в DOM
     const loader = document.createElement('div');
     loader.id = 'pageTransitionLoader';
     loader.innerHTML = `
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
-            <div style="width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #60a5fa; border-radius: 50%; animation: spinLoader 0.6s linear infinite;"></div>
-            <span style="font-size: 0.9rem; color: #94a3b8; font-family: system-ui, sans-serif; letter-spacing: 0.5px;">Загрузка...</span>
+        <div class="loader-content">
+            <div class="cyber-spinner">
+                <div class="ring ring-1"></div>
+                <div class="ring ring-2"></div>
+                <div class="core-glow"></div>
+            </div>
+            <div class="loader-text">СИНХРОНИЗАЦИЯ...</div>
         </div>
         <style>
-            @keyframes spinLoader { to { transform: rotate(360deg); } }
+            .loader-content {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 18px;
+            }
+            .cyber-spinner {
+                position: relative;
+                width: 70px;
+                height: 70px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .ring {
+                position: absolute;
+                border-radius: 50%;
+                border: 2px solid transparent;
+            }
+            .ring-1 {
+                width: 100%;
+                height: 100%;
+                border-top-color: #3b82f6;
+                border-bottom-color: #3b82f6;
+                animation: spinClockwise 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+                box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+            }
+            .ring-2 {
+                width: 65%;
+                height: 65%;
+                border-left-color: #a855f7;
+                border-right-color: #a855f7;
+                animation: spinCounter 0.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+                box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+            }
+            .core-glow {
+                width: 20px;
+                height: 20px;
+                background: linear-gradient(135deg, #3b82f6, #a855f7);
+                border-radius: 50%;
+                box-shadow: 0 0 20px #3b82f6, 0 0 40px #a855f7;
+                animation: pulseCore 1s ease-in-out infinite alternate;
+            }
+            .loader-text {
+                font-family: 'Courier New', Courier, monospace;
+                font-size: 0.85rem;
+                letter-spacing: 3px;
+                color: #cbd5e1;
+                font-weight: bold;
+                text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+                animation: textFlicker 1.5s infinite;
+            }
+            @keyframes spinClockwise {
+                to { transform: rotate(360deg); }
+            }
+            @keyframes spinCounter {
+                to { transform: rotate(-360deg); }
+            }
+            @keyframes pulseCore {
+                0% { transform: scale(0.8); opacity: 0.7; }
+                100% { transform: scale(1.2); opacity: 1; }
+            }
+            @keyframes textFlicker {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.6; }
+            }
         </style>
     `;
     loader.style.cssText = `
         position: fixed;
         inset: 0;
-        background: rgba(11, 15, 25, 0.7);
-        backdrop-filter: blur(6px);
+        background: rgba(11, 15, 25, 0.82);
+        backdrop-filter: blur(10px);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 9999;
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.2s ease;
+        transition: opacity 0.25s ease;
     `;
+
     document.addEventListener("DOMContentLoaded", () => {
         document.body.appendChild(loader);
 
-        // Плавное появление страницы при загрузке
+        // Плавное скрытие лоадера при открытии новой страницы
         setTimeout(() => {
             loader.style.opacity = "0";
-        }, 100);
+        }, 120);
     });
 
-    // Перехват кликов по меню с активацией лоадера
+    // Перехват кликов по меню для мгновенного включения анимации
     document.addEventListener('click', (e) => {
         const link = e.target.closest('.nav-menu a, .logo');
         if (!link) return;
@@ -43,11 +112,11 @@
         if (!href || href.startsWith('#') || href.startsWith('http')) return;
 
         e.preventDefault();
-        loader.style.opacity = "1"; // Мгновенно показываем красивый экран ожидания
+        loader.style.opacity = "1"; // Мгновенно активируем киберпанк-экран загрузки
         
         setTimeout(() => {
             window.location.href = href;
-        }, 120); // Небольшая задержка для плавности анимации
+        }, 150); // Плавный переход
     });
 })();
 
