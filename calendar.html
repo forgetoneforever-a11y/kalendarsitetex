@@ -557,7 +557,6 @@
         addTodoItemBtn.addEventListener('click', () => {
             createTodoRow();
         });
-        // Список изначально пустой по запросу
 
         function renderCalendar() {
             const year = currentDate.getFullYear();
@@ -638,7 +637,7 @@
             noteInput.value = '';
             mediaFile.value = '';
             fileNamePreview.textContent = 'Файл не выбран';
-            todoItemsContainer.innerHTML = ''; // Очищаем чек-листы после отправки
+            todoItemsContainer.innerHTML = '';
         });
 
         updateSelectedDateText();
@@ -661,35 +660,39 @@
             liveClock.textContent = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
             const currentTimeMinutes = now.getHours() * 60 + now.getMinutes();
+            
             let currentPair = null;
             let nextPair = null;
 
-            for (let p of scheduleMock) {
-                let [sh, sm] = p.start.split(':').map(Number);
-                let [eh, em] = p.end.split(':').map(Number);
-                let startMin = sh * 60 + sm;
-                let endMin = eh * 60 + em;
+            for (let i = 0; i < scheduleMock.length; i++) {
+                const pair = scheduleMock[i];
+                const [startH, startM] = pair.start.split(':').map(Number);
+                const [endH, endM] = pair.end.split(':').map(Number);
+                
+                const startMinutes = startH * 60 + startM;
+                const endMinutes = endH * 60 + endM;
 
-                if (currentTimeMinutes >= startMin && currentTimeMinutes <= endMin) {
-                    currentPair = { ...p, endMin };
+                if (currentTimeMinutes >= startMinutes && currentTimeMinutes <= endMinutes) {
+                    currentPair = pair;
                     break;
-                } else if (currentTimeMinutes < startMin && !nextPair) {
-                    nextPair = p;
+                } else if (currentTimeMinutes < startMinutes) {
+                    nextPair = pair;
+                    break;
                 }
             }
 
             if (currentPair) {
-                let diffMin = currentPair.endMin - currentTimeMinutes;
-                pairTitle.textContent = `🟢 Идет: ${currentPair.name}`;
-                pairMeta.textContent = `${currentPair.room} • До конца пары осталось ~${diffMin} мин.`;
+                pairTitle.textContent = `🔴 Идет пара: ${currentPair.name}`;
+                pairMeta.textContent = `Аудитория: ${currentPair.room} (${currentPair.start} - ${currentPair.end})`;
             } else if (nextPair) {
-                pairTitle.textContent = `⏳ Ближайшая: ${nextPair.name}`;
-                pairMeta.textContent = `${nextPair.room} • Начало в ${nextPair.start}`;
+                pairTitle.textContent = `⏳ Скоро начнется: ${nextPair.name}`;
+                pairMeta.textContent = `Аудитория: ${nextPair.room} (Начало в ${nextPair.start})`;
             } else {
-                pairTitle.textContent = `🌙 Занятия на сегодня завершены`;
-                pairMeta.textContent = `Отличная работа, можно отдыхать!`;
+                pairTitle.textContent = `🎉 Занятия на сегодня окончены`;
+                pairMeta.textContent = `Отдыхайте или готовьте задачи на завтра!`;
             }
         }
+
         setInterval(updateLivePairWidget, 1000);
         updateLivePairWidget();
     </script>
