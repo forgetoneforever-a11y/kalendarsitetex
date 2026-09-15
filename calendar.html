@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Календарь и Виджеты — Texnikum work</title>
+    <title>Календарь и Заметки — Texnikum work</title>
     
     <link rel="stylesheet" href="./css/variables.css">
     <link rel="stylesheet" href="./css/global.css">
@@ -613,31 +613,58 @@
         prevMonthBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); });
         nextMonthBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); });
 
-        sendNoteBtn.addEventListener('click', () => {
+        // --- ОТПРАВКА ДАННЫХ В TELEGRAM ЧЕРЕЗ FASTAPI БЭКЕНД ---
+        sendNoteBtn.addEventListener('click', async () => {
             const noteText = noteInput.value.trim();
             const taskTime = timeInput.value || 'Не указано';
-            const hasFile = mediaFile.files.length > 0;
             
+            // Собираем пункты чек-листа
             const todoRows = todoItemsContainer.querySelectorAll('.todo-item-row');
-            let todos = [];
-            todoRows.forEach(row => {
+            let todosText = "";
+            todoRows.forEach((row) => {
                 const text = row.querySelector('input[type="text"]').value.trim();
                 const checked = row.querySelector('input[type="checkbox"]').checked;
-                if (text) todos.push({ text, checked });
+                if (text) {
+                    todosText += `\n  ${checked ? '✅' : '🟩'} ${text}`;
+                }
             });
 
-            if (!noteText && !hasFile && todos.length === 0) {
-                alert('Введите текст заметки, добавьте пункты чеклиста или прикрепите файл!');
+            if (!noteText && todosText === "") {
+                alert('Введите текст заметки или добавьте пункты чеклиста!');
                 return;
             }
 
-            const dateString = selectedDate.toLocaleDateString('ru-RU');
-            alert(`Заметка и чек-лист на ${dateString} (${taskTime}) успешно сохранены и отправлены в Telegram!`);
-            
-            noteInput.value = '';
-            mediaFile.value = '';
-            fileNamePreview.textContent = 'Файл не выбран';
-            todoItemsContainer.innerHTML = '';
+            const dateString = selectedDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+            let fullMessage = `📅 <b>Дата:</b> ${dateString}\n⏰ <b>Время:</b> ${taskTime}\n\n`;
+            if (noteText) fullMessage += `📝 <b>Заметка:</b>\n${noteText}\n`;
+            if (todosText) fullMessage += `\n📋 <b>Чек-лист:</b>${todosText}`;
+
+            try {
+                // Отправляем запрос на ваш FastAPI бэкенд
+                const response = await fetch('https://botkalendar.onrender.com/api/send-from-site', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: fullMessage,
+                        title: "Заметка из календаря"
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.status === "success") {
+                    alert('✅ Заметка и чек-лист успешно отправлены в Telegram!');
+                    noteInput.value = '';
+                    todoItemsContainer.innerHTML = '';
+                } else {
+                    alert('⚠️ Ошибка отправки: ' + (result.detail || 'Сначала напишите боту /start в Telegram!'));
+                }
+            } catch (error) {
+                console.error(error);
+                alert('❌ Не удалось связаться с сервером бэкенда.');
+            }
         });
 
         updateSelectedDateText();
